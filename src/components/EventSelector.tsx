@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import { t, Locale, getInitialLocale } from '@/lib/i18n';
 import LanguageSelector from '@/components/LanguageSelector';
@@ -23,7 +23,8 @@ interface EventSelectorProps {
 }
 
 export default function EventSelector({ onEventSelect, locale, onLocaleChange }: EventSelectorProps) {
-  const { user, isAuthenticated, logout, setShowLoginModal } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [finishedEvents, setFinishedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +62,7 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
     }
   };
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const [activeResponse, finishedResponse] = await Promise.all([
         fetch('/api/events'),
@@ -85,13 +86,13 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLocale]);
 
   useEffect(() => {
     if (isClient) {
       fetchEvents();
     }
-  }, [isClient, currentLocale]);
+  }, [isClient, currentLocale, fetchEvents]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -500,6 +501,54 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">{t(currentLocale, 'loginRequired')}</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const name = formData.get('name') as string;
+              if (name && name.trim()) {
+                // Use the auth context's login function
+                const { login } = useAuth();
+                login(name.trim());
+                setShowLoginModal(false);
+              }
+            }}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  {t(currentLocale, 'enterYourName')}
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder={t(currentLocale, 'enterYourName')}
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  {t(currentLocale, 'continue')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLoginModal(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  {t(currentLocale, 'cancel')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

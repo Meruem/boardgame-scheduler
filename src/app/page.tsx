@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import GameAutocomplete from '@/components/GameAutocomplete';
 import LanguageSelector from '@/components/LanguageSelector';
 import Comments from '@/components/Comments';
@@ -142,7 +142,7 @@ export default function Home() {
     if (isClient && locale) {
       fetchSessions();
     }
-  }, [isClient, locale, selectedEvent?.id]);
+  }, [isClient, locale, selectedEvent?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -164,7 +164,7 @@ export default function Home() {
     localStorage.setItem('locale', newLocale);
   };
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       const activeUrl = selectedEvent ? `/api/sessions?eventId=${selectedEvent.id}` : '/api/sessions';
       const retiredUrl = selectedEvent ? `/api/sessions/retired?eventId=${selectedEvent.id}` : '/api/sessions/retired';
@@ -193,20 +193,13 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEvent]);
 
   // Group sessions by date
   const activeLanes = groupSessionsByDate(activeSessions, locale);
   const retiredLanes = groupSessionsByDate(retiredSessions, locale).filter(lane => lane.sessions.length > 0);
 
-  // Show message if no sessions found for selected event
-  const noSessionsFound = selectedEvent && activeSessions.length === 0 && retiredSessions.length === 0;
 
-  const handleEventSelect = (event: Event) => {
-    console.log('Event selected:', event);
-    setSelectedEvent(event);
-    setLoading(true);
-  };
 
   // Show event selector if no event is selected
   const [showEventSelector, setShowEventSelector] = useState(false);

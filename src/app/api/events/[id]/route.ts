@@ -3,10 +3,10 @@ import prisma from "@/lib/prisma";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const { id } = params;
     const body = await request.json();
     const { name, finished } = body ?? {};
 
@@ -36,7 +36,7 @@ export async function PUT(
         }
       });
 
-      if (eventWithSessions?.sessions.length > 0) {
+      if (eventWithSessions?.sessions && eventWithSessions.sessions.length > 0) {
         return NextResponse.json(
           { error: "Cannot finish event with open sessions" },
           { status: 400 }
@@ -44,7 +44,7 @@ export async function PUT(
       }
     }
 
-    const updateData: any = {};
+    const updateData: { name?: string; finished?: boolean } = {};
     if (name !== undefined) {
       updateData.name = name.trim();
     }
@@ -58,15 +58,16 @@ export async function PUT(
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string };
     console.error('Error updating event:', error);
-    if (error.code === 'P2025') {
+    if (prismaError.code === 'P2025') {
       return NextResponse.json(
         { error: "Event not found" },
         { status: 404 }
       );
     }
-    if (error.code === 'P2002') {
+    if (prismaError.code === 'P2002') {
       return NextResponse.json(
         { error: "Event with this name already exists" },
         { status: 400 }
@@ -81,19 +82,20 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const { id } = params;
 
     await prisma.event.delete({
       where: { id },
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string };
     console.error('Error deleting event:', error);
-    if (error.code === 'P2025') {
+    if (prismaError.code === 'P2025') {
       return NextResponse.json(
         { error: "Event not found" },
         { status: 404 }

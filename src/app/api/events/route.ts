@@ -50,9 +50,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(created, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
+    const prismaError = error as { code?: string };
     console.error('Error creating event:', error);
-    if (error.code === 'P2002') {
+    if (prismaError.code === 'P2002') {
       return NextResponse.json(
         { error: "Event with this name already exists" },
         { status: 400 }
