@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface RouteParams {
-  params: { id: string; commentId: string };
+  params: Promise<{ id: string; commentId: string }>;
 }
 
 // DELETE /api/sessions/[id]/comments/[commentId] - Delete a comment
-export async function DELETE(_request: Request, context: RouteParams) {
+export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
-    const { id: sessionId, commentId } = await context.params;
+    const { id: sessionId, commentId } = await params;
 
     // Check if comment exists and belongs to the session
     const comment = await prisma.comment.findFirst({

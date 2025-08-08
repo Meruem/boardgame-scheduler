@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface RouteParams {
-  params: { id: string; signupId: string };
+  params: Promise<{ id: string; signupId: string }>;
 }
 
-export async function DELETE(_request: Request, context: RouteParams) {
+export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
-    const { id: sessionId, signupId } = await context.params;
+    const { id: sessionId, signupId } = await params;
     
     // Check if session exists
     const session = await prisma.gameSession.findUnique({

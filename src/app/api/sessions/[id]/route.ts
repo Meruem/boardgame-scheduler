@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, context: RouteParams) {
-  const { id } = await context.params;
+export async function GET(_request: Request, { params }: RouteParams) {
+  const { id } = await params;
   const session = await prisma.gameSession.findUnique({
     where: { id },
     include: { signups: true },
@@ -19,9 +19,9 @@ export async function GET(_request: Request, context: RouteParams) {
   return NextResponse.json(session);
 }
 
-export async function PUT(request: Request, context: RouteParams) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     const body = await request.json();
     console.log('Update session request body:', body);
               const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description } = body ?? {};
@@ -101,52 +101,46 @@ export async function PUT(request: Request, context: RouteParams) {
               maxTimeMinutes: adjustedMaxTime,
               description: description?.trim() || null,
             },
-            include: { signups: true },
           });
 
-    console.log('Update successful:', updated);
+          console.log('Update successful:', updated);
 
-    return NextResponse.json(updated);
-  } catch (error) {
-    console.error("Update session error:", error);
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    return NextResponse.json(
-      { error: "Failed to update session" },
-      { status: 500 }
-    );
-  }
-}
+          return NextResponse.json(updated);
+        } catch (error) {
+          console.error("Update session error:", error);
+          return NextResponse.json(
+            { error: "Failed to update session" },
+            { status: 500 }
+          );
+        }
+      }
 
-export async function DELETE(_request: Request, context: RouteParams) {
-  try {
-    const { id } = await context.params;
-    
-    // Check if session exists
-    const session = await prisma.gameSession.findUnique({
-      where: { id },
-      include: { signups: true },
-    });
+      export async function DELETE(_request: Request, { params }: RouteParams) {
+        try {
+          const { id } = await params;
+          
+          // Check if session exists
+          const session = await prisma.gameSession.findUnique({
+            where: { id },
+          });
 
-    if (!session) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 });
-    }
+          if (!session) {
+            return NextResponse.json({ error: "Session not found" }, { status: 404 });
+          }
 
-    // Delete the session (signups will be deleted automatically due to cascade)
-    await prisma.gameSession.delete({
-      where: { id },
-    });
+          // Delete the session (this will cascade delete signups and comments)
+          await prisma.gameSession.delete({
+            where: { id },
+          });
 
-    return NextResponse.json({ message: "Session deleted successfully" });
-  } catch (error) {
-    console.error("Delete session error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete session" },
-      { status: 500 }
-    );
-  }
-}
+          return NextResponse.json({ message: "Session deleted successfully" });
+        } catch (error) {
+          console.error("Delete session error:", error);
+          return NextResponse.json(
+            { error: "Failed to delete session" },
+            { status: 500 }
+          );
+        }
+      }
 
 

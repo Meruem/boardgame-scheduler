@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/sessions/[id]/comments - Get all comments for a session
-export async function GET(_request: Request, context: RouteParams) {
+export async function GET(_request: Request, { params }: RouteParams) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
 
     const comments = await prisma.comment.findMany({
       where: { sessionId: id },
@@ -23,9 +23,9 @@ export async function GET(_request: Request, context: RouteParams) {
 }
 
 // POST /api/sessions/[id]/comments - Create a new comment
-export async function POST(request: Request, context: RouteParams) {
+export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     const body = await request.json();
     const { authorName, content } = body;
 

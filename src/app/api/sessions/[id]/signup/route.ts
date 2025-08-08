@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export async function POST(request: Request, context: RouteParams) {
+export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
     const body = await request.json();
     const { displayName } = body ?? {};
 
