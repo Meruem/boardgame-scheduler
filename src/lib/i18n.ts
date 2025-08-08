@@ -98,6 +98,7 @@ export interface Translations {
   failedToDeleteSession: string;
   failedToJoinSession: string;
   failedToRemovePlayer: string;
+  cannotJoinRetiredSession: string;
   confirmDeleteSession: string;
   
   // Validation
@@ -108,6 +109,7 @@ export interface Translations {
   minTimeMustBePositive: string;
   maxTimeMustBePositive: string;
   maxTimeMustBeGreaterThanMin: string;
+  endTimeBeforeStartTime: string;
   
   // Language selector
   language: string;
@@ -165,6 +167,7 @@ export interface Translations {
   finishedEvents: string;
   confirmFinishEvent: string;
   failedToFinishEvent: string;
+  cannotFinishEventWithOpenSessions: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -265,6 +268,7 @@ const translations: Record<Locale, Translations> = {
     failedToDeleteSession: 'Failed to delete session',
     failedToJoinSession: 'Failed to join session',
     failedToRemovePlayer: 'Failed to remove player',
+    cannotJoinRetiredSession: 'Cannot join retired session',
     confirmDeleteSession: 'Are you sure you want to delete "{sessionName}"? This action cannot be undone and will remove all signups.',
     
     // Validation
@@ -275,6 +279,7 @@ const translations: Record<Locale, Translations> = {
     minTimeMustBePositive: 'Min time must be positive',
     maxTimeMustBePositive: 'Max time must be positive',
     maxTimeMustBeGreaterThanMin: 'Max time must be greater than or equal to min time',
+    endTimeBeforeStartTime: 'End time must not be before start time',
     
     // Language selector
     language: 'Language',
@@ -332,6 +337,7 @@ const translations: Record<Locale, Translations> = {
     finishedEvents: 'Finished Events',
     confirmFinishEvent: 'Are you sure you want to finish "{eventName}"?',
     failedToFinishEvent: 'Failed to finish event',
+    cannotFinishEventWithOpenSessions: 'Cannot finish event with open sessions',
   },
   cs: {
     // Common
@@ -430,6 +436,7 @@ const translations: Record<Locale, Translations> = {
     failedToDeleteSession: 'Nepodařilo se smazat sezení',
     failedToJoinSession: 'Nepodařilo se připojit k sezení',
     failedToRemovePlayer: 'Nepodařilo se odebrat hráče',
+    cannotJoinRetiredSession: 'Nelze se připojit k ukončenému sezení',
     confirmDeleteSession: 'Opravdu chcete smazat "{sessionName}"? Tuto akci nelze vrátit zpět a odstraní všechna přihlášení.',
     
     // Validation
@@ -440,6 +447,7 @@ const translations: Record<Locale, Translations> = {
     minTimeMustBePositive: 'Minimální čas musí být kladný',
     maxTimeMustBePositive: 'Maximální čas musí být kladný',
     maxTimeMustBeGreaterThanMin: 'Maximální čas musí být větší nebo rovný minimálnímu času',
+    endTimeBeforeStartTime: 'Koncový čas nemůže být před začátkem',
     
     // Language selector
     language: 'Jazyk',
@@ -497,6 +505,7 @@ const translations: Record<Locale, Translations> = {
     finishedEvents: 'Ukončené události',
     confirmFinishEvent: 'Opravdu chcete ukončit "{eventName}"?',
     failedToFinishEvent: 'Nepodařilo se ukončit událost',
+    cannotFinishEventWithOpenSessions: 'Nelze ukončit událost s otevřenými sezeními',
   },
 };
 

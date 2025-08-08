@@ -61,16 +61,22 @@ export async function POST(request: Request) {
             typeof maxPlayers !== "number" ||
             !Number.isInteger(maxPlayers) ||
             maxPlayers <= 0 ||
-            typeof complexity !== "number" ||
-            complexity < 0 ||
-            complexity > 5 ||
-            typeof minTimeMinutes !== "number" ||
-            !Number.isInteger(minTimeMinutes) ||
-            minTimeMinutes <= 0 ||
-            typeof maxTimeMinutes !== "number" ||
-            !Number.isInteger(maxTimeMinutes) ||
-            maxTimeMinutes <= 0 ||
-            maxTimeMinutes < minTimeMinutes
+                              typeof complexity !== "number" ||
+                  complexity < 0 ||
+                  complexity > 5 ||
+                  (minTimeMinutes !== null && minTimeMinutes !== undefined && (
+                    typeof minTimeMinutes !== "number" ||
+                    !Number.isInteger(minTimeMinutes) ||
+                    minTimeMinutes <= 0
+                  )) ||
+                  (maxTimeMinutes !== null && maxTimeMinutes !== undefined && (
+                    typeof maxTimeMinutes !== "number" ||
+                    !Number.isInteger(maxTimeMinutes) ||
+                    maxTimeMinutes <= 0
+                  )) ||
+                  (minTimeMinutes !== null && minTimeMinutes !== undefined && 
+                   maxTimeMinutes !== null && maxTimeMinutes !== undefined && 
+                   maxTimeMinutes < minTimeMinutes)
           ) {
       return NextResponse.json(
         { error: "Invalid input" },
@@ -78,19 +84,19 @@ export async function POST(request: Request) {
       );
     }
 
-                const created = await prisma.gameSession.create({
-              data: {
-                boardGameName: boardGameName.trim(),
-                scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-                maxPlayers,
-                complexity,
-                minTimeMinutes,
-                maxTimeMinutes,
-                description: description?.trim() || null,
-                organizer: organizer?.trim() || 'Unknown Organizer',
-                eventId: eventId?.trim() || null,
-              },
-            });
+                                const created = await prisma.gameSession.create({
+                  data: {
+                    boardGameName: boardGameName.trim(),
+                    scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+                    maxPlayers,
+                    complexity,
+                    minTimeMinutes: minTimeMinutes || null,
+                    maxTimeMinutes: maxTimeMinutes || null,
+                    description: description?.trim() || null,
+                    organizer: organizer?.trim() || 'Unknown Organizer',
+                    eventId: eventId?.trim() || null,
+                  },
+                });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     console.error('Error creating session:', error);

@@ -218,7 +218,11 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
         setError('');
       } else {
         const errorData = await response.json();
-        setError(errorData.error || t(currentLocale, 'failedToFinishEvent'));
+        if (errorData.error === 'CANNOT_FINISH_EVENT_WITH_OPEN_SESSIONS') {
+          setError(t(currentLocale, 'cannotFinishEventWithOpenSessions'));
+        } else {
+          setError(errorData.error || t(currentLocale, 'failedToFinishEvent'));
+        }
       }
     } catch (error) {
       console.error('Error finishing event:', error);

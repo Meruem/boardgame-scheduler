@@ -44,23 +44,28 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
     }
 
-              // Handle optional complexity and time fields with defaults
+              // Handle optional complexity and time fields
           const finalComplexity = typeof complexity === "number" && complexity >= 0 && complexity <= 5
             ? complexity
             : 2.0;
 
-          const finalMinTimeMinutes = typeof minTimeMinutes === "number" && Number.isInteger(minTimeMinutes) && minTimeMinutes > 0
+          const finalMinTimeMinutes = (typeof minTimeMinutes === "number" && Number.isInteger(minTimeMinutes) && minTimeMinutes > 0)
             ? minTimeMinutes
-            : 60;
+            : null;
 
-          const finalMaxTimeMinutes = typeof maxTimeMinutes === "number" && Number.isInteger(maxTimeMinutes) && maxTimeMinutes > 0
+          const finalMaxTimeMinutes = (typeof maxTimeMinutes === "number" && Number.isInteger(maxTimeMinutes) && maxTimeMinutes > 0)
             ? maxTimeMinutes
-            : 60;
+            : null;
 
-          // Ensure max time is not less than min time
-          const adjustedMaxTime = Math.max(finalMinTimeMinutes, finalMaxTimeMinutes);
+          // Validate that if both times are provided, max is not less than min
+          if (finalMinTimeMinutes !== null && finalMaxTimeMinutes !== null && finalMaxTimeMinutes < finalMinTimeMinutes) {
+            return NextResponse.json(
+              { error: "Max time cannot be less than min time" },
+              { status: 400 }
+            );
+          }
 
-          console.log('Final values:', { finalComplexity, finalMinTimeMinutes, adjustedMaxTime });
+          console.log('Final values:', { finalComplexity, finalMinTimeMinutes, finalMaxTimeMinutes });
 
     // Check if session exists and get current signups
     const session = await prisma.gameSession.findUnique({
@@ -88,23 +93,30 @@ export async function PUT(request: Request, { params }: RouteParams) {
             maxPlayers,
             complexity: finalComplexity,
             minTimeMinutes: finalMinTimeMinutes,
-            maxTimeMinutes: adjustedMaxTime,
+            maxTimeMinutes: finalMaxTimeMinutes,
             description: description?.trim() || null,
             organizer: organizer?.trim() || 'Unknown Organizer',
           });
 
+          const updateData: any = {
+            boardGameName: boardGameName.trim(),
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+            maxPlayers,
+            complexity: finalComplexity,
+            description: description?.trim() || null,
+            organizer: organizer?.trim() || 'Unknown Organizer',
+          };
+
+          if (finalMinTimeMinutes !== null) {
+            updateData.minTimeMinutes = finalMinTimeMinutes;
+          }
+          if (finalMaxTimeMinutes !== null) {
+            updateData.maxTimeMinutes = finalMaxTimeMinutes;
+          }
+
           const updated = await prisma.gameSession.update({
             where: { id },
-            data: {
-              boardGameName: boardGameName.trim(),
-              scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
-              maxPlayers,
-              complexity: finalComplexity,
-              minTimeMinutes: finalMinTimeMinutes,
-              maxTimeMinutes: adjustedMaxTime,
-              description: description?.trim() || null,
-              organizer: organizer?.trim() || 'Unknown Organizer',
-            },
+            data: updateData,
           });
 
           console.log('Update successful:', updated);

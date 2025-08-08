@@ -31,6 +31,17 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Check if session is retired (finished)
+    if (session.scheduledAt && session.maxTimeMinutes) {
+      const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
+      if (sessionEndTime < new Date()) {
+        return NextResponse.json(
+          { error: "CANNOT_JOIN_RETIRED_SESSION" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Check if session is full
     if (session.signups.length >= session.maxPlayers) {
       return NextResponse.json(

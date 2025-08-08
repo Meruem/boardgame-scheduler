@@ -38,7 +38,7 @@ export async function PUT(
 
       if (eventWithSessions?.sessions && eventWithSessions.sessions.length > 0) {
         return NextResponse.json(
-          { error: "Cannot finish event with open sessions" },
+          { error: "CANNOT_FINISH_EVENT_WITH_OPEN_SESSIONS" },
           { status: 400 }
         );
       }

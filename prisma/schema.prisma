@@ -26,8 +26,8 @@ model GameSession {
   scheduledAt    DateTime?
   maxPlayers     Int
   complexity     Float     @default(2.0)
-  minTimeMinutes Int       @default(60)
-  maxTimeMinutes Int       @default(60)
+                minTimeMinutes Int?
+              maxTimeMinutes Int?
   description    String?
   organizer      String?
   eventId        String?

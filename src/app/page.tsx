@@ -508,6 +508,15 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     
     try {
       const startTime = new Date(session.scheduledAt);
+      
+      if (!session.maxTimeMinutes) {
+        return startTime.toLocaleTimeString(locale === 'cs' ? 'cs-CZ' : 'en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
+      
       const endTime = new Date(startTime.getTime() + session.maxTimeMinutes * 60 * 1000);
       
       const formatTime = (date: Date) => {
@@ -527,12 +536,17 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     }
   };
 
-  const isRetired = session.scheduledAt ? 
+  const isRetired = session.scheduledAt && session.maxTimeMinutes ? 
     new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000) < new Date() : 
     false;
   const isFull = session.signups.length >= session.maxPlayers;
 
   const handleAuthenticatedAction = (action: 'join' | 'edit' | 'delete') => {
+    // Prevent joining retired sessions
+    if (action === 'join' && isRetired) {
+      return;
+    }
+    
     if (!isAuthenticated) {
       setPendingAction(action);
       setShowLoginModal(true);
@@ -558,9 +572,11 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
       // Directly perform the action after successful login
       switch (pendingAction) {
         case 'join':
-          // Use the newly logged in user's name
-          setSignupName(userName || '');
-          setShowSignupForm(true);
+          // Prevent joining retired sessions
+          if (!isRetired) {
+            setSignupName(userName || '');
+            setShowSignupForm(true);
+          }
           break;
         case 'edit':
           setShowEditForm(true);
@@ -625,8 +641,14 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           <div className="flex items-center gap-1 min-w-0">
             <span className="font-medium whitespace-nowrap">{t(locale, 'time')}:</span>
             <span className="flex-shrink-0">
-              {session.minTimeMinutes === session.maxTimeMinutes 
-                ? `${session.minTimeMinutes} ${t(locale, 'minutes')}` 
+              {session.minTimeMinutes === null && session.maxTimeMinutes === null
+                ? '???'
+                : session.minTimeMinutes === null
+                ? `${session.maxTimeMinutes} ${t(locale, 'minutes')}`
+                : session.maxTimeMinutes === null
+                ? `${session.minTimeMinutes} ${t(locale, 'minutes')}`
+                : session.minTimeMinutes === session.maxTimeMinutes
+                ? `${session.minTimeMinutes} ${t(locale, 'minutes')}`
                 : `${session.minTimeMinutes}-${session.maxTimeMinutes} ${t(locale, 'minutes')}`}
             </span>
           </div>
@@ -913,8 +935,8 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
     endTime: getLocalTimeString(),
     maxPlayers: 4,
     complexity: 2.0,
-    minTimeMinutes: 60,
-    maxTimeMinutes: 60,
+    minTimeMinutes: null as number | null,
+    maxTimeMinutes: null as number | null,
     description: '',
     organizer: user?.name || 'Unknown Organizer',
     isUnscheduled: false,
@@ -944,8 +966,8 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
       endTime: getLocalTimeString(),
       maxPlayers: 4,
       complexity: 2.0,
-      minTimeMinutes: 60,
-      maxTimeMinutes: 60,
+      minTimeMinutes: null,
+      maxTimeMinutes: null,
       description: '',
       organizer: user?.name || 'Unknown Organizer',
       isUnscheduled: false,
@@ -960,7 +982,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
     
     // Validate that end time is not before start time
     if (formData.endTime < formData.startTime) {
-      setErrors({ endTime: 'End time must not be before start time' });
+      setErrors({ endTime: t(locale, 'endTimeBeforeStartTime') });
       return;
     }
     
@@ -975,8 +997,8 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
         scheduledAt,
         maxPlayers: formData.maxPlayers,
         complexity: formData.complexity,
-        minTimeMinutes: formData.minTimeMinutes,
-        maxTimeMinutes: formData.maxTimeMinutes,
+        minTimeMinutes: formData.minTimeMinutes || null,
+        maxTimeMinutes: formData.maxTimeMinutes || null,
         description: formData.description,
         organizer: formData.organizer,
         eventId: eventId,
@@ -1238,11 +1260,10 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                     value={formData.minTimeMinutes || ''}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? null : value });
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                    placeholder="60"
-                    required
+                    placeholder="Optional"
                   />
                 </div>
                 <div>
@@ -1257,11 +1278,10 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                     value={formData.maxTimeMinutes || ''}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? null : value });
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                    placeholder="60"
-                    required
+                    placeholder="Optional"
                   />
                 </div>
               </div>
@@ -1336,7 +1356,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
 
   const isUnscheduled = !session.scheduledAt;
   const sessionDate = session.scheduledAt ? new Date(session.scheduledAt) : new Date();
-  const endTime = session.scheduledAt ? new Date(sessionDate.getTime() + session.maxTimeMinutes * 60 * 1000) : new Date();
+  const endTime = session.scheduledAt && session.maxTimeMinutes ? new Date(sessionDate.getTime() + session.maxTimeMinutes * 60 * 1000) : new Date();
 
   const [formData, setFormData] = useState({
     boardGameName: session.boardGameName,
@@ -1345,8 +1365,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     endTime: getLocalTimeString(endTime),
     maxPlayers: session.maxPlayers,
     complexity: session.complexity || 2.0,
-    minTimeMinutes: session.minTimeMinutes || 60,
-    maxTimeMinutes: session.maxTimeMinutes || 60,
+    minTimeMinutes: session.minTimeMinutes,
+    maxTimeMinutes: session.maxTimeMinutes,
     description: session.description || '',
     organizer: session.organizer || 'Unknown Organizer',
     isUnscheduled: isUnscheduled,
@@ -1377,7 +1397,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     
     // Validate that end time is not before start time
     if (formData.endTime < formData.startTime) {
-      setError('End time must not be before start time');
+      setError(t(locale, 'endTimeBeforeStartTime'));
       return;
     }
     
@@ -1396,8 +1416,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
           scheduledAt,
           maxPlayers: formData.maxPlayers,
           complexity: formData.complexity,
-          minTimeMinutes: formData.minTimeMinutes,
-          maxTimeMinutes: formData.maxTimeMinutes,
+          minTimeMinutes: formData.minTimeMinutes || null,
+          maxTimeMinutes: formData.maxTimeMinutes || null,
           description: formData.description,
           organizer: formData.organizer,
         }),
@@ -1649,11 +1669,10 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                     value={formData.minTimeMinutes || ''}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? null : value });
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                    placeholder="60"
-                    required
+                    placeholder="Optional"
                   />
                 </div>
                 <div>
@@ -1668,11 +1687,10 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                     value={formData.maxTimeMinutes || ''}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? null : value });
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                    placeholder="60"
-                    required
+                    placeholder="Optional"
                   />
                 </div>
               </div>
