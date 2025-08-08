@@ -688,9 +688,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that end time is after start time
-    if (formData.endTime <= formData.startTime) {
-      alert('End time must be after start time');
+    // Validate that end time is not before start time
+    if (formData.endTime < formData.startTime) {
+      alert('End time must not be before start time');
       return;
     }
     
@@ -1042,9 +1042,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate that end time is after start time
-    if (formData.endTime <= formData.startTime) {
-      setError('End time must be after start time');
+    // Validate that end time is not before start time
+    if (formData.endTime < formData.startTime) {
+      setError('End time must not be before start time');
       return;
     }
     
