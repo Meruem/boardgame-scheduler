@@ -34,10 +34,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       Number.isNaN(Date.parse(scheduledAt)) ||
       typeof maxPlayers !== "number" ||
       !Number.isInteger(maxPlayers) ||
-      maxPlayers <= 0 ||
-      typeof organizer !== "string" ||
-      !organizer.trim()
-    ) {
+              maxPlayers <= 0
+      ) {
       return NextResponse.json(
         { error: "Invalid input" },
         { status: 400 }
@@ -90,7 +88,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
             minTimeMinutes: finalMinTimeMinutes,
             maxTimeMinutes: adjustedMaxTime,
             description: description?.trim() || null,
-            organizer: organizer.trim(),
+            organizer: organizer?.trim() || 'Unknown Organizer',
           });
 
           const updated = await prisma.gameSession.update({
@@ -103,7 +101,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
               minTimeMinutes: finalMinTimeMinutes,
               maxTimeMinutes: adjustedMaxTime,
               description: description?.trim() || null,
-              organizer: organizer.trim(),
+              organizer: organizer?.trim() || 'Unknown Organizer',
             },
           });
 

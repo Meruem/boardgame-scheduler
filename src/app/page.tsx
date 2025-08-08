@@ -514,7 +514,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
         
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{session.boardGameName}</h3>
         <div className="text-sm text-gray-600 mb-3">
-          <span className="font-medium">{t(locale, 'organizer')}:</span> {session.organizer}
+          <span className="font-medium">{t(locale, 'organizer')}:</span> {session.organizer || 'Unknown Organizer'}
         </div>
         
         {/* Prominent Time Display */}
@@ -839,7 +839,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     minTimeMinutes: 60,
     maxTimeMinutes: 60,
     description: '',
-    organizer: user?.name || '',
+    organizer: user?.name || 'Unknown Organizer',
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -869,7 +869,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
       minTimeMinutes: 60,
       maxTimeMinutes: 60,
       description: '',
-      organizer: user?.name || '',
+      organizer: user?.name || 'Unknown Organizer',
     });
   }, [user?.name]);
 
@@ -1246,7 +1246,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     minTimeMinutes: session.minTimeMinutes || 60,
     maxTimeMinutes: session.maxTimeMinutes || 60,
     description: session.description || '',
-    organizer: session.organizer || '',
+    organizer: session.organizer || 'Unknown Organizer',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');

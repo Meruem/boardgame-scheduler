@@ -50,9 +50,7 @@ export async function POST(request: Request) {
             typeof maxTimeMinutes !== "number" ||
             !Number.isInteger(maxTimeMinutes) ||
             maxTimeMinutes <= 0 ||
-            maxTimeMinutes < minTimeMinutes ||
-            typeof organizer !== "string" ||
-            !organizer.trim()
+            maxTimeMinutes < minTimeMinutes
           ) {
       return NextResponse.json(
         { error: "Invalid input" },
@@ -69,7 +67,7 @@ export async function POST(request: Request) {
                 minTimeMinutes,
                 maxTimeMinutes,
                 description: description?.trim() || null,
-                organizer: organizer.trim(),
+                organizer: organizer?.trim() || 'Unknown Organizer',
               },
             });
     return NextResponse.json(created, { status: 201 });
