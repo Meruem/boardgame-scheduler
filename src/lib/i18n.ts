@@ -69,6 +69,9 @@ export interface Translations {
   searchBoardGame: string;
   startTypingToSearchBoardGameGeek: string;
   dateTime: string;
+  date: string;
+  startTime: string;
+  endTime: string;
   simple: string;
   complex: string;
   gameDescriptionAutoFilled: string;
@@ -196,6 +199,9 @@ const translations: Record<Locale, Translations> = {
     searchBoardGame: 'Search for a board game...',
     startTypingToSearchBoardGameGeek: 'Start typing to search BoardGameGeek database. Selecting a game will auto-fill complexity and time.',
     dateTime: 'Date & Time (24-hour format)',
+    date: 'Date',
+    startTime: 'Start Time',
+    endTime: 'End Time',
     simple: 'Simple',
     complex: 'Complex',
     gameDescriptionAutoFilled: 'Game description will be auto-filled from BoardGameGeek when you select a game...',
@@ -321,6 +327,9 @@ const translations: Record<Locale, Translations> = {
     searchBoardGame: 'Hledat deskovou hru...',
     startTypingToSearchBoardGameGeek: 'Začněte psát pro vyhledávání v databázi BoardGameGeek. Výběr hry automaticky vyplní složitost a čas.',
     dateTime: 'Datum a Čas (24hodinový formát)',
+    date: 'Datum',
+    startTime: 'Začátek',
+    endTime: 'Konec',
     simple: 'Jednoduchá',
     complex: 'Složitá',
     gameDescriptionAutoFilled: 'Popis hry bude automaticky vyplněn z BoardGameGeek při výběru hry...',

@@ -618,19 +618,26 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
 }
 
 function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void; onSuccess: () => void; locale: Locale }) {
-  const getLocalDateTimeString = () => {
+  const getLocalDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getLocalTimeString = () => {
+    const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
   };
 
   const [formData, setFormData] = useState({
     boardGameName: '',
-    scheduledAt: getLocalDateTimeString(),
+    date: getLocalDateString(),
+    startTime: getLocalTimeString(),
+    endTime: getLocalTimeString(),
     maxPlayers: 4,
     complexity: 2.0,
     minTimeMinutes: 60,
@@ -656,7 +663,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
   useEffect(() => {
     setFormData({
       boardGameName: '',
-      scheduledAt: getLocalDateTimeString(),
+      date: getLocalDateString(),
+      startTime: getLocalTimeString(),
+      endTime: getLocalTimeString(),
       maxPlayers: 4,
       complexity: 2.0,
       minTimeMinutes: 60,
@@ -667,13 +676,31 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that end time is after start time
+    if (formData.endTime <= formData.startTime) {
+      alert('End time must be after start time');
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
+      // Combine date and start time for scheduledAt
+      const scheduledAt = `${formData.date}T${formData.startTime}`;
+      
       const response = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          boardGameName: formData.boardGameName,
+          scheduledAt,
+          maxPlayers: formData.maxPlayers,
+          complexity: formData.complexity,
+          minTimeMinutes: formData.minTimeMinutes,
+          maxTimeMinutes: formData.maxTimeMinutes,
+          description: formData.description,
+        }),
       });
 
       if (response.ok) {
@@ -690,9 +717,23 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     }
   };
 
+  // Auto-update end time when start time changes
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartTime = e.target.value;
+    setFormData({ ...formData, startTime: newStartTime });
+    
+    // If end time is before or equal to start time, update it to 1 hour later
+    if (formData.endTime <= newStartTime) {
+      const [hours, minutes] = newStartTime.split(':').map(Number);
+      const endHours = (hours + 1) % 24;
+      const endTimeString = `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      setFormData(prev => ({ ...prev, startTime: newStartTime, endTime: endTimeString }));
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-md mx-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl mx-4 relative overflow-hidden">
         {/* Boardgame-themed background pattern for modal */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 left-4 w-16 h-16 border-2 border-blue-300 rounded-lg transform rotate-6"></div>
@@ -702,132 +743,223 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
         <div className="relative z-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">{t(locale, 'createNewSession')}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'boardGameName')}
-              </label>
-              <GameAutocomplete
-                value={formData.boardGameName}
-                onChange={(value) => setFormData({ ...formData, boardGameName: value })}
-                onGameSelect={handleGameSelect}
-                placeholder={t(locale, 'searchBoardGame')}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {t(locale, 'startTypingToSearchBoardGameGeek')}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'dateTime')}
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.scheduledAt}
-                onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                step="900"
-                required
-              />
-
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'maxPlayers')}
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={formData.maxPlayers || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setFormData({ ...formData, maxPlayers: isNaN(value) ? 4 : value });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'complexity')}
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={formData.complexity}
-                  onChange={(e) => setFormData({ ...formData, complexity: parseFloat(e.target.value) })}
-                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
-                  {formData.complexity.toFixed(1)}
-                </span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>{t(locale, 'simple')}</span>
-                <span>{t(locale, 'complex')}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(locale, 'minTime')}
+                  {t(locale, 'boardGameName')}
+                </label>
+                <GameAutocomplete
+                  value={formData.boardGameName}
+                  onChange={(value) => setFormData({ ...formData, boardGameName: value })}
+                  onGameSelect={handleGameSelect}
+                  placeholder={t(locale, 'searchBoardGame')}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t(locale, 'startTypingToSearchBoardGameGeek')}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'date')}
                 </label>
                 <input
-                  type="number"
-                  min="5"
-                  max="480"
-                  step="5"
-                  value={formData.minTimeMinutes || ''}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
-                  }}
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  placeholder="60"
                   required
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'startTime')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={handleStartTimeChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      required
+                    />
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.startTime.split(':').map(Number);
+                          const newMinutes = (minutes + 15) % 60;
+                          const newHours = minutes + 15 >= 60 ? (hours + 1) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, startTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-t text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.startTime.split(':').map(Number);
+                          const newMinutes = minutes - 15 < 0 ? minutes + 45 : minutes - 15;
+                          const newHours = minutes - 15 < 0 ? (hours - 1 + 24) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, startTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-b text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'endTime')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      required
+                    />
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.endTime.split(':').map(Number);
+                          const newMinutes = (minutes + 15) % 60;
+                          const newHours = minutes + 15 >= 60 ? (hours + 1) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, endTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-t text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.endTime.split(':').map(Number);
+                          const newMinutes = minutes - 15 < 0 ? minutes + 45 : minutes - 15;
+                          const newHours = minutes - 15 < 0 ? (hours - 1 + 24) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, endTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-b text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(locale, 'maxTime')}
+                  {t(locale, 'maxPlayers')}
                 </label>
                 <input
                   type="number"
-                  min="5"
-                  max="480"
-                  step="5"
-                  value={formData.maxTimeMinutes || ''}
+                  min="1"
+                  max="20"
+                  value={formData.maxPlayers || ''}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                    setFormData({ ...formData, maxPlayers: isNaN(value) ? 4 : value });
                   }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  placeholder="60"
                   required
                 />
               </div>
-            </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t(locale, 'description')}
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
-              rows={3}
-              placeholder={t(locale, 'gameDescriptionAutoFilled')}
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'complexity')}
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.complexity}
+                    onChange={(e) => setFormData({ ...formData, complexity: parseFloat(e.target.value) })}
+                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
+                    {formData.complexity.toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>{t(locale, 'simple')}</span>
+                  <span>{t(locale, 'complex')}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'minTime')}
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="480"
+                    step="5"
+                    value={formData.minTimeMinutes || ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    placeholder="60"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'maxTime')}
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="480"
+                    step="5"
+                    value={formData.maxTimeMinutes || ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    placeholder="60"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'description')}
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
+                  rows={4}
+                  placeholder={t(locale, 'gameDescriptionAutoFilled')}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-2 mt-6">
@@ -854,18 +986,27 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 }
 
 function EditSessionForm({ session, onClose, onSuccess, locale }: { session: GameSessionWithSignups; onClose: () => void; onSuccess: () => void; locale: Locale }) {
-  const getLocalDateTimeString = (date: Date) => {
+  const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const getLocalTimeString = (date: Date) => {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
   };
+
+  const sessionDate = new Date(session.scheduledAt);
+  const endTime = new Date(sessionDate.getTime() + session.maxTimeMinutes * 60 * 1000);
 
   const [formData, setFormData] = useState({
     boardGameName: session.boardGameName,
-    scheduledAt: getLocalDateTimeString(new Date(session.scheduledAt)),
+    date: getLocalDateString(sessionDate),
+    startTime: getLocalTimeString(sessionDate),
+    endTime: getLocalTimeString(endTime),
     maxPlayers: session.maxPlayers,
     complexity: session.complexity || 2.0,
     minTimeMinutes: session.minTimeMinutes || 60,
@@ -889,14 +1030,32 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that end time is after start time
+    if (formData.endTime <= formData.startTime) {
+      setError('End time must be after start time');
+      return;
+    }
+    
     setSubmitting(true);
     setError('');
 
     try {
+      // Combine date and start time for scheduledAt
+      const scheduledAt = `${formData.date}T${formData.startTime}`;
+      
       const response = await fetch(`/api/sessions/${session.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          boardGameName: formData.boardGameName,
+          scheduledAt,
+          maxPlayers: formData.maxPlayers,
+          complexity: formData.complexity,
+          minTimeMinutes: formData.minTimeMinutes,
+          maxTimeMinutes: formData.maxTimeMinutes,
+          description: formData.description,
+        }),
       });
 
       if (response.ok) {
@@ -913,9 +1072,23 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     }
   };
 
+  // Auto-update end time when start time changes
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartTime = e.target.value;
+    setFormData({ ...formData, startTime: newStartTime });
+    
+    // If end time is before or equal to start time, update it to 1 hour later
+    if (formData.endTime <= newStartTime) {
+      const [hours, minutes] = newStartTime.split(':').map(Number);
+      const endHours = (hours + 1) % 24;
+      const endTimeString = `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      setFormData(prev => ({ ...prev, startTime: newStartTime, endTime: endTimeString }));
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-green-900/70 via-emerald-900/70 to-teal-900/70 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-md mx-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl mx-4 relative overflow-hidden">
         {/* Boardgame-themed background pattern for modal */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 left-4 w-16 h-16 border-2 border-green-300 rounded-lg transform rotate-6"></div>
@@ -925,140 +1098,232 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
         <div className="relative z-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">{t(locale, 'editSession')}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'boardGameName')}
-              </label>
-              <GameAutocomplete
-                value={formData.boardGameName}
-                onChange={(value) => setFormData({ ...formData, boardGameName: value })}
-                onGameSelect={handleGameSelect}
-                placeholder={t(locale, 'searchBoardGame')}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {t(locale, 'startTypingToSearchBoardGameGeek')}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'dateTime')}
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.scheduledAt}
-                onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                step="900"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'maxPlayers')}
-              </label>
-              <input
-                type="number"
-                min={session.signups.length}
-                max="20"
-                value={formData.maxPlayers || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setFormData({ ...formData, maxPlayers: isNaN(value) ? session.signups.length : value });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {t(locale, 'maxPlayersMinSignups').replace('{minSignups}', session.signups.length.toString())}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'complexity')}
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={formData.complexity}
-                  onChange={(e) => setFormData({ ...formData, complexity: parseFloat(e.target.value) })}
-                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
-                  {formData.complexity.toFixed(1)}
-                </span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>{t(locale, 'simple')}</span>
-                <span>{t(locale, 'complex')}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(locale, 'minTime')}
+                  {t(locale, 'boardGameName')}
+                </label>
+                <GameAutocomplete
+                  value={formData.boardGameName}
+                  onChange={(value) => setFormData({ ...formData, boardGameName: value })}
+                  onGameSelect={handleGameSelect}
+                  placeholder={t(locale, 'searchBoardGame')}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t(locale, 'startTypingToSearchBoardGameGeek')}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'date')}
                 </label>
                 <input
-                  type="number"
-                  min="5"
-                  max="480"
-                  step="5"
-                  value={formData.minTimeMinutes || ''}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
-                  }}
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  placeholder="60"
                   required
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'startTime')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={handleStartTimeChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      required
+                    />
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.startTime.split(':').map(Number);
+                          const newMinutes = (minutes + 15) % 60;
+                          const newHours = minutes + 15 >= 60 ? (hours + 1) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, startTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-t text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.startTime.split(':').map(Number);
+                          const newMinutes = minutes - 15 < 0 ? minutes + 45 : minutes - 15;
+                          const newHours = minutes - 15 < 0 ? (hours - 1 + 24) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, startTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-b text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'endTime')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      required
+                    />
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.endTime.split(':').map(Number);
+                          const newMinutes = (minutes + 15) % 60;
+                          const newHours = minutes + 15 >= 60 ? (hours + 1) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, endTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-t text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const [hours, minutes] = formData.endTime.split(':').map(Number);
+                          const newMinutes = minutes - 15 < 0 ? minutes + 45 : minutes - 15;
+                          const newHours = minutes - 15 < 0 ? (hours - 1 + 24) % 24 : hours;
+                          const newTime = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+                          setFormData({ ...formData, endTime: newTime });
+                        }}
+                        className="w-6 h-4 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-b text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(locale, 'maxTime')}
+                  {t(locale, 'maxPlayers')}
                 </label>
                 <input
                   type="number"
-                  min="5"
-                  max="480"
-                  step="5"
-                  value={formData.maxTimeMinutes || ''}
+                  min={session.signups.length}
+                  max="20"
+                  value={formData.maxPlayers || ''}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                    setFormData({ ...formData, maxPlayers: isNaN(value) ? session.signups.length : value });
                   }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  placeholder="60"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t(locale, 'maxPlayersMinSignups').replace('{minSignups}', session.signups.length.toString())}
+                </p>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t(locale, 'description')}
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
-                rows={3}
-                placeholder={t(locale, 'gameDescriptionAutoFilled')}
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                {error}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'complexity')}
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.complexity}
+                    onChange={(e) => setFormData({ ...formData, complexity: parseFloat(e.target.value) })}
+                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
+                    {formData.complexity.toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>{t(locale, 'simple')}</span>
+                  <span>{t(locale, 'complex')}</span>
+                </div>
               </div>
-            )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'minTime')}
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="480"
+                    step="5"
+                    value={formData.minTimeMinutes || ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    placeholder="60"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'maxTime')}
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="480"
+                    step="5"
+                    value={formData.maxTimeMinutes || ''}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    placeholder="60"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'description')}
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
+                  rows={4}
+                  placeholder={t(locale, 'gameDescriptionAutoFilled')}
+                />
+              </div>
+
+              {error && (
+                <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2 mt-6">
