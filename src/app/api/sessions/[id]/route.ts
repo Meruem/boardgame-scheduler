@@ -87,6 +87,7 @@ export async function PUT(request: Request, context: RouteParams) {
             complexity: finalComplexity,
             minTimeMinutes: finalMinTimeMinutes,
             maxTimeMinutes: adjustedMaxTime,
+            description: description?.trim() || null,
           });
 
           const updated = await prisma.gameSession.update({
@@ -108,6 +109,10 @@ export async function PUT(request: Request, context: RouteParams) {
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Update session error:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
       { error: "Failed to update session" },
       { status: 500 }
