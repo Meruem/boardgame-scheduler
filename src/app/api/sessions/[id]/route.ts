@@ -24,7 +24,7 @@ export async function PUT(request: Request, context: RouteParams) {
     const { id } = await context.params;
     const body = await request.json();
     console.log('Update session request body:', body);
-    const { boardGameName, scheduledAt, maxPlayers, complexity, timeMinutes } = body ?? {};
+              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes } = body ?? {};
 
     // Validate input
     if (
@@ -42,16 +42,23 @@ export async function PUT(request: Request, context: RouteParams) {
       );
     }
 
-    // Handle optional complexity and timeMinutes with defaults
-    const finalComplexity = typeof complexity === "number" && complexity >= 0 && complexity <= 5 
-      ? complexity 
-      : 2.0;
-    
-    const finalTimeMinutes = typeof timeMinutes === "number" && Number.isInteger(timeMinutes) && timeMinutes > 0
-      ? timeMinutes
-      : 60;
+              // Handle optional complexity and time fields with defaults
+          const finalComplexity = typeof complexity === "number" && complexity >= 0 && complexity <= 5
+            ? complexity
+            : 2.0;
 
-    console.log('Final values:', { finalComplexity, finalTimeMinutes });
+          const finalMinTimeMinutes = typeof minTimeMinutes === "number" && Number.isInteger(minTimeMinutes) && minTimeMinutes > 0
+            ? minTimeMinutes
+            : 60;
+
+          const finalMaxTimeMinutes = typeof maxTimeMinutes === "number" && Number.isInteger(maxTimeMinutes) && maxTimeMinutes > 0
+            ? maxTimeMinutes
+            : 60;
+
+          // Ensure max time is not less than min time
+          const adjustedMaxTime = Math.max(finalMinTimeMinutes, finalMaxTimeMinutes);
+
+          console.log('Final values:', { finalComplexity, finalMinTimeMinutes, adjustedMaxTime });
 
     // Check if session exists and get current signups
     const session = await prisma.gameSession.findUnique({
@@ -72,26 +79,28 @@ export async function PUT(request: Request, context: RouteParams) {
     }
 
     // Update the session
-    console.log('Attempting to update session with data:', {
-      id,
-      boardGameName: boardGameName.trim(),
-      scheduledAt: new Date(scheduledAt),
-      maxPlayers,
-      complexity: finalComplexity,
-      timeMinutes: finalTimeMinutes,
-    });
+              console.log('Attempting to update session with data:', {
+            id,
+            boardGameName: boardGameName.trim(),
+            scheduledAt: new Date(scheduledAt),
+            maxPlayers,
+            complexity: finalComplexity,
+            minTimeMinutes: finalMinTimeMinutes,
+            maxTimeMinutes: adjustedMaxTime,
+          });
 
-    const updated = await prisma.gameSession.update({
-      where: { id },
-      data: {
-        boardGameName: boardGameName.trim(),
-        scheduledAt: new Date(scheduledAt),
-        maxPlayers,
-        complexity: finalComplexity,
-        timeMinutes: finalTimeMinutes,
-      },
-      include: { signups: true },
-    });
+          const updated = await prisma.gameSession.update({
+            where: { id },
+            data: {
+              boardGameName: boardGameName.trim(),
+              scheduledAt: new Date(scheduledAt),
+              maxPlayers,
+              complexity: finalComplexity,
+              minTimeMinutes: finalMinTimeMinutes,
+              maxTimeMinutes: adjustedMaxTime,
+            },
+            include: { signups: true },
+          });
 
     console.log('Update successful:', updated);
 

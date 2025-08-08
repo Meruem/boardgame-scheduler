@@ -2,7 +2,8 @@ interface BGGGame {
   id: string;
   name: string;
   complexity: number;
-  playingTime: number;
+  minPlayingTime: number;
+  maxPlayingTime: number;
   minPlayers: number;
   maxPlayers: number;
   description?: string;
@@ -140,7 +141,8 @@ export function getFallbackGameDetails(id: string): BGGGame | null {
     id: game.id,
     name: game.name,
     complexity: game.complexity,
-    playingTime: game.playingTime,
+    minPlayingTime: game.playingTime,
+    maxPlayingTime: game.playingTime,
     minPlayers: game.minPlayers,
     maxPlayers: game.maxPlayers,
   };

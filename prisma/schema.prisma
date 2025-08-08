@@ -17,7 +17,8 @@ model GameSession {
   scheduledAt    DateTime
   maxPlayers     Int
   complexity     Float     @default(2.0)
-  timeMinutes    Int       @default(60)
+  minTimeMinutes Int       @default(60)
+  maxTimeMinutes Int       @default(60)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

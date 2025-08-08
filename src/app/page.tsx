@@ -238,10 +238,14 @@ function SessionCard({ session, onUpdate }: { session: GameSession; onUpdate: ()
             </div>
             <span className="text-xs flex-shrink-0">({(session.complexity || 2.0).toFixed(1)}/5)</span>
           </div>
-          <div className="flex items-center gap-1 min-w-0">
-            <span className="font-medium whitespace-nowrap">Time:</span>
-            <span className="flex-shrink-0">{session.timeMinutes} min</span>
-          </div>
+                     <div className="flex items-center gap-1 min-w-0">
+             <span className="font-medium whitespace-nowrap">Time:</span>
+             <span className="flex-shrink-0">
+               {session.minTimeMinutes === session.maxTimeMinutes 
+                 ? `${session.minTimeMinutes} min` 
+                 : `${session.minTimeMinutes}-${session.maxTimeMinutes} min`}
+             </span>
+           </div>
         </div>
         
         {session.signups.length > 0 && (
@@ -396,7 +400,8 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
     scheduledAt: getLocalDateTimeString(),
     maxPlayers: 4,
     complexity: 2.0,
-    timeMinutes: 60,
+    minTimeMinutes: 60,
+    maxTimeMinutes: 60,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -405,7 +410,8 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
       ...formData,
       boardGameName: game.name,
       complexity: game.complexity,
-      timeMinutes: game.playingTime,
+      minTimeMinutes: game.minPlayingTime,
+      maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
     });
   };
@@ -531,24 +537,45 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time (minutes)
-              </label>
-              <input
-                type="number"
-                min="15"
-                max="480"
-                step="15"
-                value={formData.timeMinutes || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setFormData({ ...formData, timeMinutes: isNaN(value) ? 60 : value });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                placeholder="60"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="15"
+                  max="480"
+                  step="15"
+                  value={formData.minTimeMinutes || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="60"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="15"
+                  max="480"
+                  step="15"
+                  value={formData.maxTimeMinutes || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="60"
+                  required
+                />
+              </div>
             </div>
           </div>
 
@@ -590,7 +617,8 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
     scheduledAt: getLocalDateTimeString(new Date(session.scheduledAt)),
     maxPlayers: session.maxPlayers,
     complexity: session.complexity || 2.0,
-    timeMinutes: session.timeMinutes || 60,
+    minTimeMinutes: session.minTimeMinutes || 60,
+    maxTimeMinutes: session.maxTimeMinutes || 60,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -600,7 +628,8 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
       ...formData,
       boardGameName: game.name,
       complexity: game.complexity,
-      timeMinutes: game.playingTime,
+      minTimeMinutes: game.minPlayingTime,
+      maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
     });
   };
@@ -718,24 +747,45 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time (minutes)
-              </label>
-              <input
-                type="number"
-                min="15"
-                max="480"
-                step="15"
-                value={formData.timeMinutes || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  setFormData({ ...formData, timeMinutes: isNaN(value) ? 60 : value });
-                }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                placeholder="60"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="15"
+                  max="480"
+                  step="15"
+                  value={formData.minTimeMinutes || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setFormData({ ...formData, minTimeMinutes: isNaN(value) ? 60 : value });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="60"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="15"
+                  max="480"
+                  step="15"
+                  value={formData.maxTimeMinutes || ''}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? 60 : value });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="60"
+                  required
+                />
+              </div>
             </div>
 
             {error && (

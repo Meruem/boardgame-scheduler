@@ -4,7 +4,8 @@ interface BGGGame {
   id: string;
   name: string;
   complexity: number;
-  playingTime: number;
+  minPlayingTime: number;
+  maxPlayingTime: number;
   minPlayers: number;
   maxPlayers: number;
   description?: string;
@@ -37,8 +38,18 @@ export async function GET(request: Request) {
       nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*>([^<]*)<\/name>/);
     }
     
-    const complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
-    const playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
+    // Parse complexity (averageweight) - try different possible locations
+    let complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
+    if (!complexityMatch) {
+      complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<ratings[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
+    }
+    
+    // Parse playing time - try different possible locations
+    let playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
+    if (!playingTimeMatch) {
+      playingTimeMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
+    }
+    
     const minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
     const maxPlayersMatch = xmlText.match(/<maxplayers>([^<]*)<\/maxplayers>/);
     const descriptionMatch = xmlText.match(/<description>([\s\S]*?)<\/description>/);
@@ -55,7 +66,8 @@ export async function GET(request: Request) {
       id,
       name: nameMatch ? nameMatch[1] : '',
       complexity: Math.min(5, Math.max(0, complexity)), // Clamp to 0-5 range
-      playingTime,
+      minPlayingTime: playingTime,
+      maxPlayingTime: playingTime,
       minPlayers,
       maxPlayers,
       description,
