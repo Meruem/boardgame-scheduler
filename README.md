@@ -75,11 +75,11 @@ A modern web application for scheduling and managing board game sessions. Built 
 2. **Set up Vercel Postgres** (recommended):
    - In your Vercel dashboard, go to Storage
    - Create a new Postgres database
-   - Vercel will automatically add the `DATABASE_URL` environment variable
+   - Vercel will automatically add the `DB_POSTGRES_URL` environment variable
 3. **Alternative: Set environment variables manually**:
    - Go to your project settings
    - Navigate to "Environment Variables"
-   - Add: `DATABASE_URL` = Your PostgreSQL connection string
+   - Add: `DB_POSTGRES_URL` = Your PostgreSQL connection string
 4. **Deploy** - Vercel will automatically run the build script which includes:
    - `prisma generate` - Generate Prisma client
    - `prisma db push` - Apply schema changes
@@ -89,7 +89,8 @@ A modern web application for scheduling and managing board game sessions. Built 
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | SQLite database file path | `file:./prisma/dev.db` |
+| `DATABASE_URL` | SQLite database file path (local dev) | `file:./prisma/dev.db` |
+| `DB_POSTGRES_URL` | PostgreSQL connection string (production) | `postgresql://user:pass@host:port/db` |
 
 ## Usage
 
