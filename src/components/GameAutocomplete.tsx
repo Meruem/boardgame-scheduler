@@ -133,7 +133,10 @@ export default function GameAutocomplete({
       }
 
       if (gameDetails) {
+        console.log('Game details received:', gameDetails);
         onGameSelect(gameDetails);
+      } else {
+        console.log('No game details received');
       }
     } catch (error) {
       console.error('Error fetching game details:', error);

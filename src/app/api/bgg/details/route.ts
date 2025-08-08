@@ -31,6 +31,10 @@ export async function GET(request: Request) {
 
     const xmlText = await response.text();
     
+    // Debug: Log the XML response
+    console.log(`BGG Details for ID ${id}: XML length: ${xmlText.length}`);
+    console.log(`XML sample: ${xmlText.substring(0, 1000)}...`);
+    
     // Parse XML using regex for basic extraction
     // Try to find name with value attribute first, then fallback to text content
     let nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*value="([^"]*)"[^>]*\/>/);
@@ -38,16 +42,23 @@ export async function GET(request: Request) {
       nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*>([^<]*)<\/name>/);
     }
     
-    // Parse complexity (averageweight) - try different possible locations
+    // Parse complexity (averageweight) - try multiple patterns
     let complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
     if (!complexityMatch) {
       complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<ratings[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
     }
+    if (!complexityMatch) {
+      complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
+    }
     
-    // Parse playing time - try different possible locations
+    // Parse playing time - try multiple patterns
     let playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
     if (!playingTimeMatch) {
       playingTimeMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
+    }
+    if (!playingTimeMatch) {
+      // Try to find playingtime in the main item section
+      playingTimeMatch = xmlText.match(/<item[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
     }
     
     const minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
@@ -59,6 +70,13 @@ export async function GET(request: Request) {
     const playingTime = playingTimeMatch ? parseInt(playingTimeMatch[1]) : 0;
     const minPlayers = minPlayersMatch ? parseInt(minPlayersMatch[1]) : 1;
     const maxPlayers = maxPlayersMatch ? parseInt(maxPlayersMatch[1]) : 4;
+
+    console.log(`Raw parsed values:`, {
+      complexityMatch: complexityMatch ? complexityMatch[1] : 'not found',
+      playingTimeMatch: playingTimeMatch ? playingTimeMatch[1] : 'not found',
+      minPlayersMatch: minPlayersMatch ? minPlayersMatch[1] : 'not found',
+      maxPlayersMatch: maxPlayersMatch ? maxPlayersMatch[1] : 'not found',
+    });
     const description = descriptionMatch ? descriptionMatch[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : undefined;
     const thumbnail = thumbnailMatch ? thumbnailMatch[1] : undefined;
 
@@ -73,6 +91,15 @@ export async function GET(request: Request) {
       description,
       thumbnail,
     };
+
+    console.log(`Parsed game data:`, {
+      id,
+      name: game.name,
+      complexity: game.complexity,
+      playingTime: game.minPlayingTime,
+      minPlayers: game.minPlayers,
+      maxPlayers: game.maxPlayers,
+    });
 
     return NextResponse.json(game);
   } catch (error) {

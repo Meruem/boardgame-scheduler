@@ -406,6 +406,7 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
   const [submitting, setSubmitting] = useState(false);
 
   const handleGameSelect = (game: any) => {
+    console.log('Game selected in CreateSessionForm:', game);
     setFormData({
       ...formData,
       boardGameName: game.name,
