@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   try {
     const response = await fetch(
-      `https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1`
+      `https://boardgamegeek.com/xmlapi2/thing?id=${id}&stats=1&type=boardgame`
     );
     
     if (!response.ok) {
@@ -34,6 +34,19 @@ export async function GET(request: Request) {
     // Debug: Log the XML response
     console.log(`BGG Details for ID ${id}: XML length: ${xmlText.length}`);
     console.log(`XML sample: ${xmlText.substring(0, 1000)}...`);
+    
+    // Debug: Search for specific patterns in the XML
+    const hasAverageweight = xmlText.includes('averageweight');
+    const hasPlayingtime = xmlText.includes('playingtime');
+    const hasMinplayers = xmlText.includes('minplayers');
+    const hasMaxplayers = xmlText.includes('maxplayers');
+    
+    console.log(`XML contains:`, {
+      averageweight: hasAverageweight,
+      playingtime: hasPlayingtime,
+      minplayers: hasMinplayers,
+      maxplayers: hasMaxplayers,
+    });
     
     // Parse XML using regex for basic extraction
     // Try to find name with value attribute first, then fallback to text content
@@ -50,6 +63,10 @@ export async function GET(request: Request) {
     if (!complexityMatch) {
       complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
     }
+    if (!complexityMatch) {
+      // Try to find averageweight in the entire XML
+      complexityMatch = xmlText.match(/<averageweight[^>]*>([^<]*)<\/averageweight>/);
+    }
     
     // Parse playing time - try multiple patterns
     let playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
@@ -60,9 +77,21 @@ export async function GET(request: Request) {
       // Try to find playingtime in the main item section
       playingTimeMatch = xmlText.match(/<item[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
     }
+    if (!playingTimeMatch) {
+      // Try to find playingtime anywhere in the XML
+      playingTimeMatch = xmlText.match(/<playingtime[^>]*>([^<]*)<\/playingtime>/);
+    }
     
-    const minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
-    const maxPlayersMatch = xmlText.match(/<maxplayers>([^<]*)<\/maxplayers>/);
+    // Parse player counts - try multiple patterns
+    let minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
+    if (!minPlayersMatch) {
+      minPlayersMatch = xmlText.match(/<minplayers[^>]*>([^<]*)<\/minplayers>/);
+    }
+    
+    let maxPlayersMatch = xmlText.match(/<maxplayers>([^<]*)<\/maxplayers>/);
+    if (!maxPlayersMatch) {
+      maxPlayersMatch = xmlText.match(/<maxplayers[^>]*>([^<]*)<\/maxplayers>/);
+    }
     const descriptionMatch = xmlText.match(/<description>([\s\S]*?)<\/description>/);
     const thumbnailMatch = xmlText.match(/<thumbnail>([^<]*)<\/thumbnail>/);
 
