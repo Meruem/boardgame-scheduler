@@ -31,7 +31,12 @@ export async function GET(request: Request) {
     const xmlText = await response.text();
     
     // Parse XML using regex for basic extraction
-    const nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*>([^<]*)<\/name>/);
+    // Try to find name with value attribute first, then fallback to text content
+    let nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*value="([^"]*)"[^>]*\/>/);
+    if (!nameMatch) {
+      nameMatch = xmlText.match(/<name[^>]*type="primary"[^>]*>([^<]*)<\/name>/);
+    }
+    
     const complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
     const playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
     const minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);

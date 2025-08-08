@@ -25,26 +25,57 @@ export async function GET(request: Request) {
 
     const xmlText = await response.text();
     
-    // Simple XML parsing using regex (for basic extraction)
-    const itemMatches = xmlText.match(/<item[^>]*id="([^"]*)"[^>]*>([\s\S]*?)<\/item>/g);
+    // Debug: Log a sample of the XML response
+    console.log(`BGG Search for "${query}": XML length: ${xmlText.length}`);
+    console.log(`XML sample: ${xmlText.substring(0, 500)}...`);
+    
+    // Parse BGG API response format
     const results: BGGSearchResult[] = [];
-
-    if (itemMatches) {
-      itemMatches.slice(0, 10).forEach((itemXml) => {
-        const idMatch = itemXml.match(/id="([^"]*)"/);
-        const nameMatch = itemXml.match(/<name[^>]*>([^<]*)<\/name>/);
-        const yearMatch = itemXml.match(/<yearpublished>([^<]*)<\/yearpublished>/);
+    
+    // Find all item tags with their content
+    const itemRegex = /<item[^>]*id="([^"]*)"[^>]*>([\s\S]*?)<\/item>/g;
+    let itemMatch;
+    
+    while ((itemMatch = itemRegex.exec(xmlText)) !== null && results.length < 10) {
+      const [, id, itemContent] = itemMatch;
+      
+      // Extract name with value attribute (BGG format)
+      const nameMatch = itemContent.match(/<name[^>]*value="([^"]*)"[^>]*\/>/);
+      const yearMatch = itemContent.match(/<yearpublished[^>]*value="([^"]*)"[^>]*\/>/);
+      
+      if (nameMatch) {
+        results.push({
+          id,
+          name: nameMatch[1],
+          year: yearMatch ? yearMatch[1] : undefined,
+        });
+      }
+    }
+    
+    // If no results found with value attributes, try text content approach
+    if (results.length === 0) {
+      const itemRegex2 = /<item[^>]*id="([^"]*)"[^>]*>([\s\S]*?)<\/item>/g;
+      let itemMatch2;
+      
+      while ((itemMatch2 = itemRegex2.exec(xmlText)) !== null && results.length < 10) {
+        const [, id, itemContent] = itemMatch2;
         
-        if (idMatch && nameMatch) {
+        // Try to find name with text content
+        const nameMatch = itemContent.match(/<name[^>]*>([^<]*)<\/name>/);
+        const yearMatch = itemContent.match(/<yearpublished[^>]*>([^<]*)<\/yearpublished>/);
+        
+        if (nameMatch) {
           results.push({
-            id: idMatch[1],
+            id,
             name: nameMatch[1],
             year: yearMatch ? yearMatch[1] : undefined,
           });
         }
-      });
+      }
     }
-
+    
+    console.log(`Found ${results.length} results for "${query}"`);
+    
     return NextResponse.json(results);
   } catch (error) {
     console.error('Error searching board games:', error);
