@@ -733,8 +733,8 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     const newStartTime = e.target.value;
     setFormData({ ...formData, startTime: newStartTime });
     
-    // If end time is before or equal to start time, update it to 1 hour later
-    if (formData.endTime <= newStartTime) {
+    // If end time is before start time, update it to 1 hour later
+    if (formData.endTime < newStartTime) {
       const [hours, minutes] = newStartTime.split(':').map(Number);
       const endHours = (hours + 1) % 24;
       const endTimeString = `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -1088,8 +1088,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     const newStartTime = e.target.value;
     setFormData({ ...formData, startTime: newStartTime });
     
-    // If end time is before or equal to start time, update it to 1 hour later
-    if (formData.endTime <= newStartTime) {
+    // If end time is before start time, update it to 1 hour later
+    if (formData.endTime < newStartTime) {
       const [hours, minutes] = newStartTime.split(':').map(Number);
       const endHours = (hours + 1) % 24;
       const endTimeString = `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
