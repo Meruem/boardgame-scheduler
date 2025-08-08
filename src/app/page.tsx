@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GameAutocomplete from '@/components/GameAutocomplete';
 import { GameSession } from '@/generated/prisma';
 
 // Prevent hydration errors by ensuring consistent rendering
@@ -399,6 +400,16 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const handleGameSelect = (game: any) => {
+    setFormData({
+      ...formData,
+      boardGameName: game.name,
+      complexity: game.complexity,
+      timeMinutes: game.playingTime,
+      maxPlayers: game.maxPlayers,
+    });
+  };
+
   // Reset form when modal opens
   useEffect(() => {
     setFormData({
@@ -452,14 +463,15 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Board Game Name
               </label>
-              <input
-                type="text"
+              <GameAutocomplete
                 value={formData.boardGameName}
-                onChange={(e) => setFormData({ ...formData, boardGameName: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                placeholder="e.g., Catan, Ticket to Ride"
-                required
+                onChange={(value) => setFormData({ ...formData, boardGameName: value })}
+                onGameSelect={handleGameSelect}
+                placeholder="Search for a board game..."
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Start typing to search BoardGameGeek database. Selecting a game will auto-fill complexity and time.
+              </p>
             </div>
 
             <div>
@@ -583,6 +595,16 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const handleGameSelect = (game: any) => {
+    setFormData({
+      ...formData,
+      boardGameName: game.name,
+      complexity: game.complexity,
+      timeMinutes: game.playingTime,
+      maxPlayers: game.maxPlayers,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -626,14 +648,15 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Board Game Name
               </label>
-              <input
-                type="text"
+              <GameAutocomplete
                 value={formData.boardGameName}
-                onChange={(e) => setFormData({ ...formData, boardGameName: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                placeholder="e.g., Catan, Ticket to Ride"
-                required
+                onChange={(value) => setFormData({ ...formData, boardGameName: value })}
+                onGameSelect={handleGameSelect}
+                placeholder="Search for a board game..."
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Start typing to search BoardGameGeek database. Selecting a game will auto-fill complexity and time.
+              </p>
             </div>
 
             <div>
