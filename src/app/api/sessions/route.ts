@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     console.log('Received session data:', body);
-    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes } = body ?? {};
+    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description } = body ?? {};
 
           if (
             typeof boardGameName !== "string" ||
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
                 complexity,
                 minTimeMinutes,
                 maxTimeMinutes,
+                description: description?.trim() || null,
               },
             });
     return NextResponse.json(created, { status: 201 });

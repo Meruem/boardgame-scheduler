@@ -24,7 +24,7 @@ export async function PUT(request: Request, context: RouteParams) {
     const { id } = await context.params;
     const body = await request.json();
     console.log('Update session request body:', body);
-              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes } = body ?? {};
+              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description } = body ?? {};
 
     // Validate input
     if (
@@ -98,6 +98,7 @@ export async function PUT(request: Request, context: RouteParams) {
               complexity: finalComplexity,
               minTimeMinutes: finalMinTimeMinutes,
               maxTimeMinutes: adjustedMaxTime,
+              description: description?.trim() || null,
             },
             include: { signups: true },
           });

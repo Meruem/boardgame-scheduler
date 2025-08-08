@@ -272,6 +272,16 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
            </div>
         </div>
         
+        {session.description && (
+          <div className="mb-3">
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {session.description.length > 200 
+                ? `${session.description.substring(0, 200)}...` 
+                : session.description}
+            </p>
+          </div>
+        )}
+        
         {session.signups.length > 0 && (
           <div className="space-y-1">
             <p className="text-sm font-medium text-gray-700">Signed up:</p>
@@ -435,6 +445,7 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
     complexity: 2.0,
     minTimeMinutes: 60,
     maxTimeMinutes: 60,
+    description: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -447,6 +458,7 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
       minTimeMinutes: game.minPlayingTime,
       maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
+      description: game.description || '',
     });
   };
 
@@ -459,6 +471,7 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
       complexity: 2.0,
       minTimeMinutes: 60,
       maxTimeMinutes: 60,
+      description: '',
     });
   }, []);
 
@@ -614,6 +627,19 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description (optional)
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
+              rows={3}
+              placeholder="Game description will be auto-filled from BoardGameGeek when you select a game..."
+            />
+          </div>
+
           <div className="flex gap-2 mt-6">
             <button
               type="submit"
@@ -654,6 +680,7 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
     complexity: session.complexity || 2.0,
     minTimeMinutes: session.minTimeMinutes || 60,
     maxTimeMinutes: session.maxTimeMinutes || 60,
+    description: session.description || '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -666,6 +693,7 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
       minTimeMinutes: game.minPlayingTime,
       maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
+      description: game.description || '',
     });
   };
 
@@ -821,6 +849,19 @@ function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description (optional)
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white resize-none"
+                rows={3}
+                placeholder="Game description will be auto-filled from BoardGameGeek when you select a game..."
+              />
             </div>
 
             {error && (
