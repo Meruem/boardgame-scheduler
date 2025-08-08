@@ -656,6 +656,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     description: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handleGameSelect = (game: BGGGame) => {
     console.log('Game selected in CreateSessionForm:', game);
@@ -688,9 +689,12 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setErrors({});
+    
     // Validate that end time is not before start time
     if (formData.endTime < formData.startTime) {
-      alert('End time must not be before start time');
+      setErrors({ endTime: 'End time must not be before start time' });
       return;
     }
     
@@ -718,11 +722,11 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
         onSuccess();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to create session');
+        setErrors({ general: error.error || 'Failed to create session' });
       }
     } catch (error) {
       console.error('Create session error:', error);
-      alert('Failed to create session');
+      setErrors({ general: 'Failed to create session' });
     } finally {
       setSubmitting(false);
     }
@@ -753,6 +757,14 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
         </div>
         <div className="relative z-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">{t(locale, 'createNewSession')}</h2>
+        
+        {/* Error Display */}
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{errors.general}</p>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column */}
@@ -837,7 +849,11 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                       type="time"
                       value={formData.endTime}
                       onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      className={`w-full border rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 text-gray-900 bg-white ${
+                        errors.endTime 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
                       required
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
@@ -869,6 +885,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                       </button>
                     </div>
                   </div>
+                  {errors.endTime && (
+                    <p className="text-red-500 text-sm mt-1">{errors.endTime}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1192,7 +1211,11 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                       type="time"
                       value={formData.endTime}
                       onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      className={`w-full border rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 text-gray-900 bg-white ${
+                        error && error.includes('End time') 
+                          ? 'border-red-500 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-blue-500'
+                      }`}
                       required
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
@@ -1224,6 +1247,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                       </button>
                     </div>
                   </div>
+                  {error && error.includes('End time') && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
                 </div>
               </div>
             </div>
