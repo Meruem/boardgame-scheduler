@@ -1,4 +1,4 @@
-interface BGGGame {
+export interface BGGGame {
   id: string;
   name: string;
   complexity: number;

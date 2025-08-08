@@ -6,6 +6,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import Comments from '@/components/Comments';
 import { GameSession, Signup } from '@/generated/prisma';
 import { Locale, t, getInitialLocale, formatDate, formatDateForLane } from '@/lib/i18n';
+import type { BGGGame } from '@/lib/bgg';
 
 // Extended type to include signups
 type GameSessionWithSignups = GameSession & {
@@ -646,7 +647,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const handleGameSelect = (game: any) => {
+  const handleGameSelect = (game: BGGGame) => {
     console.log('Game selected in CreateSessionForm:', game);
     setFormData({
       ...formData,
@@ -1016,7 +1017,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGameSelect = (game: any) => {
+  const handleGameSelect = (game: BGGGame) => {
     setFormData({
       ...formData,
       boardGameName: game.name,
