@@ -30,6 +30,7 @@ model GameSession {
               maxTimeMinutes Int?
   description    String?
   organizer      String?
+  url            String?
   eventId        String?
   event          Event?     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdAt      DateTime   @default(now())

@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     console.log('Received session data:', body);
-    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer, eventId } = body ?? {};
+    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer, url, eventId } = body ?? {};
     console.log('Received session data with eventId:', { eventId, boardGameName });
 
           if (
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
             typeof maxPlayers !== "number" ||
             !Number.isInteger(maxPlayers) ||
             maxPlayers <= 0 ||
+            maxPlayers > 100 ||
                               typeof complexity !== "number" ||
                   complexity < 0 ||
                   complexity > 5 ||
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
                     maxTimeMinutes: maxTimeMinutes || null,
                     description: description?.trim() || null,
                     organizer: organizer?.trim() || 'Unknown Organizer',
+                    url: url?.trim() || null,
                     eventId: eventId?.trim() || null,
                   },
                 });

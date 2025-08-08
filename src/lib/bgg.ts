@@ -8,6 +8,7 @@ export interface BGGGame {
   maxPlayers: number;
   description?: string;
   thumbnail?: string;
+  url?: string;
 }
 
 interface BGGSearchResult {

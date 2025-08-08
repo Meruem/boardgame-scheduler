@@ -10,6 +10,7 @@ interface BGGGame {
   maxPlayers: number;
   description?: string;
   thumbnail?: string;
+  url?: string;
 }
 
 export async function GET(request: Request) {
@@ -124,6 +125,7 @@ export async function GET(request: Request) {
       maxPlayers,
       description,
       thumbnail,
+      url: `https://boardgamegeek.com/boardgame/${id}`,
     };
 
     console.log(`Parsed game data:`, {

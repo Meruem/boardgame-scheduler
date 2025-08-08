@@ -597,7 +597,20 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           </span>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{session.boardGameName}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {session.url ? (
+            <a 
+              href={session.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 transition-colors cursor-pointer"
+            >
+              {session.boardGameName}
+            </a>
+          ) : (
+            session.boardGameName
+          )}
+        </h3>
         <div className="text-sm text-gray-600 mb-3">
           <span className="font-medium">{t(locale, 'organizer')}:</span> {session.organizer || 'Unknown Organizer'}
         </div>
@@ -931,6 +944,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
     maxTimeMinutes: null as number | null,
     description: '',
     organizer: user?.name || 'Unknown Organizer',
+    url: '',
     isUnscheduled: false,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -946,6 +960,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
       maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
       description: game.description || '',
+      url: game.url || '',
     });
   };
 
@@ -962,6 +977,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
       maxTimeMinutes: null,
       description: '',
       organizer: user?.name || 'Unknown Organizer',
+      url: '',
       isUnscheduled: false,
     });
   }, [user?.name]);
@@ -972,8 +988,8 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
     // Clear previous errors
     setErrors({});
     
-    // Validate that end time is not before start time
-    if (formData.endTime < formData.startTime) {
+    // Validate that end time is not before start time (only if scheduled)
+    if (!formData.isUnscheduled && formData.endTime < formData.startTime) {
       setErrors({ endTime: t(locale, 'endTimeBeforeStartTime') });
       return;
     }
@@ -993,6 +1009,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
         maxTimeMinutes: formData.maxTimeMinutes || null,
         description: formData.description,
         organizer: formData.organizer,
+        url: formData.url || null,
         eventId: eventId,
       };
       
@@ -1204,7 +1221,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                 <input
                   type="number"
                   min="1"
-                  max="20"
+                  max="100"
                   value={formData.maxPlayers || ''}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
@@ -1294,6 +1311,19 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="https://boardgamegeek.com/boardgame/..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t(locale, 'description')}
                 </label>
                 <textarea
@@ -1361,6 +1391,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     maxTimeMinutes: session.maxTimeMinutes,
     description: session.description || '',
     organizer: session.organizer || 'Unknown Organizer',
+    url: session.url || '',
     isUnscheduled: isUnscheduled,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -1375,6 +1406,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
       maxTimeMinutes: game.maxPlayingTime,
       maxPlayers: game.maxPlayers,
       description: game.description || '',
+      url: game.url || '',
     });
   };
 
@@ -1387,8 +1419,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
       return;
     }
     
-    // Validate that end time is not before start time
-    if (formData.endTime < formData.startTime) {
+    // Validate that end time is not before start time (only if scheduled)
+    if (!formData.isUnscheduled && formData.endTime < formData.startTime) {
       setError(t(locale, 'endTimeBeforeStartTime'));
       return;
     }
@@ -1412,6 +1444,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
           maxTimeMinutes: formData.maxTimeMinutes || null,
           description: formData.description,
           organizer: formData.organizer,
+          url: formData.url || null,
         }),
       });
 
@@ -1610,7 +1643,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                 <input
                   type="number"
                   min={session.signups.length}
-                  max="20"
+                  max="100"
                   value={formData.maxPlayers || ''}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
@@ -1698,6 +1731,19 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   placeholder={t(locale, 'yourName')}
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder="https://boardgamegeek.com/boardgame/..."
                 />
               </div>
 

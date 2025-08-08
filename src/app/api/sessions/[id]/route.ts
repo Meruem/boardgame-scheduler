@@ -24,7 +24,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const body = await request.json();
     console.log('Update session request body:', body);
-              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer } = body ?? {};
+              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer, url } = body ?? {};
 
         // Validate input
     if (
@@ -36,7 +36,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       )) ||
       typeof maxPlayers !== "number" ||
       !Number.isInteger(maxPlayers) ||
-      maxPlayers <= 0
+      maxPlayers <= 0 ||
+      maxPlayers > 100
     ) {
       return NextResponse.json(
         { error: "Invalid input" },
@@ -100,20 +101,22 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
           const updateData: {
             boardGameName: string;
-            scheduledAt?: Date;
+            scheduledAt?: Date | null;
             maxPlayers: number;
             complexity: number;
             description: string | null;
             organizer: string;
+            url?: string | null;
             minTimeMinutes?: number;
             maxTimeMinutes?: number;
           } = {
             boardGameName: boardGameName.trim(),
-            scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
             maxPlayers,
             complexity: finalComplexity,
             description: description?.trim() || null,
             organizer: organizer?.trim() || 'Unknown Organizer',
+            url: url?.trim() || null,
           };
 
           if (finalMinTimeMinutes !== null) {
