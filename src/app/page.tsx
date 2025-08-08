@@ -34,6 +34,11 @@ const groupSessionsByDate = (sessions: GameSessionWithSignups[], locale: Locale)
   const lanes: { [key: string]: DateLane } = {};
   
   // Add sessions to lanes
+  if (!Array.isArray(sessions)) {
+    console.warn('groupSessionsByDate: sessions is not an array:', sessions);
+    return [];
+  }
+  
   sessions.forEach(session => {
     const sessionDate = new Date(session.scheduledAt);
     const dateKey = sessionDate.toDateString();
@@ -116,10 +121,16 @@ export default function Home() {
       const activeData = await activeResponse.json();
       const retiredData = await retiredResponse.json();
       
-      setActiveSessions(activeData);
-      setRetiredSessions(retiredData);
+      // Ensure we always set arrays, even if the API returns unexpected data
+      console.log('Active sessions data:', activeData);
+      console.log('Retired sessions data:', retiredData);
+      setActiveSessions(Array.isArray(activeData) ? activeData : []);
+      setRetiredSessions(Array.isArray(retiredData) ? retiredData : []);
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
+      // Set empty arrays on error to prevent forEach errors
+      setActiveSessions([]);
+      setRetiredSessions([]);
     } finally {
       setLoading(false);
     }
