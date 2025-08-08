@@ -217,8 +217,10 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
               comments.map((comment) => (
                 <div key={comment.id} className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h5 className="font-medium text-gray-900">{comment.authorName}</h5>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {comment.authorName}
+                      </div>
                       <p className="text-xs text-gray-500">
                         {formatDate(new Date(comment.createdAt), locale)}
                       </p>
