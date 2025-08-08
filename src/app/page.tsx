@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import GameAutocomplete from '@/components/GameAutocomplete';
-import { GameSession } from '@/generated/prisma';
+import { GameSession, Signup } from '@/generated/prisma';
+
+// Extended type to include signups
+type GameSessionWithSignups = GameSession & {
+  signups: Signup[];
+};
 
 // Prevent hydration errors by ensuring consistent rendering
 const useIsClient = () => {
@@ -15,7 +20,7 @@ const useIsClient = () => {
 
 export default function Home() {
   const isClient = useIsClient();
-  const [sessions, setSessions] = useState<GameSession[]>([]);
+  const [sessions, setSessions] = useState<GameSessionWithSignups[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -131,7 +136,7 @@ export default function Home() {
   );
 }
 
-function SessionCard({ session, onUpdate }: { session: GameSession; onUpdate: () => void }) {
+function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; onUpdate: () => void }) {
   const isClient = useIsClient();
   const [showSignupForm, setShowSignupForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -186,6 +191,25 @@ function SessionCard({ session, onUpdate }: { session: GameSession; onUpdate: ()
     }
   };
 
+  const handleRemoveSignup = async (signupId: string) => {
+    try {
+      const response = await fetch(`/api/sessions/${session.id}/signup/${signupId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Failed to remove signup');
+        return;
+      }
+
+      onUpdate();
+    } catch (error) {
+      console.error('Error removing signup:', error);
+      alert('Failed to remove signup');
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
@@ -211,7 +235,7 @@ function SessionCard({ session, onUpdate }: { session: GameSession; onUpdate: ()
           {session.boardGameName}
         </h3>
         <p className="text-gray-600 text-sm">
-          {isClient ? formatDate(session.scheduledAt) : 'Loading...'}
+          {isClient ? formatDate(session.scheduledAt.toString()) : 'Loading...'}
         </p>
       </div>
 
@@ -253,12 +277,21 @@ function SessionCard({ session, onUpdate }: { session: GameSession; onUpdate: ()
             <p className="text-sm font-medium text-gray-700">Signed up:</p>
             <div className="flex flex-wrap gap-1">
               {session.signups.map((signup) => (
-                <span
+                <div
                   key={signup.id}
-                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center gap-1 group"
                 >
-                  {signup.displayName}
-                </span>
+                  <span>{signup.displayName}</span>
+                  <button
+                    onClick={() => handleRemoveSignup(signup.id)}
+                    className="text-blue-600 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-1"
+                    title="Remove player"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -424,7 +457,8 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
       scheduledAt: getLocalDateTimeString(),
       maxPlayers: 4,
       complexity: 2.0,
-      timeMinutes: 60,
+      minTimeMinutes: 60,
+      maxTimeMinutes: 60,
     });
   }, []);
 
@@ -603,7 +637,7 @@ function CreateSessionForm({ onClose, onSuccess }: { onClose: () => void; onSucc
   );
 }
 
-function EditSessionForm({ session, onClose, onSuccess }: { session: GameSession; onClose: () => void; onSuccess: () => void }) {
+function EditSessionForm({ session, onClose, onSuccess }: { session: GameSessionWithSignups; onClose: () => void; onSuccess: () => void }) {
   const getLocalDateTimeString = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

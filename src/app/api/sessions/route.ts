@@ -20,7 +20,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes } = body ?? {};
+    console.log('Received session data:', body);
+    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes } = body ?? {};
 
           if (
             typeof boardGameName !== "string" ||
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
             });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
+    console.error('Error creating session:', error);
     return NextResponse.json(
       { error: "Failed to create session" },
       { status: 500 }
