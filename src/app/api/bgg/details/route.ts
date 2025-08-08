@@ -79,6 +79,12 @@ export async function GET(request: Request) {
       playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
     }
     
+    // Parse min playing time - try multiple patterns
+    let minPlayingTimeMatch = xmlText.match(/<minplaytime[^>]*value="([^"]*)"[^>]*\/>/);
+    if (!minPlayingTimeMatch) {
+      minPlayingTimeMatch = xmlText.match(/<minplaytime>([^<]*)<\/minplaytime>/);
+    }
+    
     // Parse player counts - try multiple patterns
     let minPlayersMatch = xmlText.match(/<minplayers[^>]*value="([^"]*)"[^>]*\/>/);
     if (!minPlayersMatch) {
@@ -94,12 +100,14 @@ export async function GET(request: Request) {
 
     const complexity = complexityMatch ? parseFloat(complexityMatch[1]) : 0;
     const playingTime = playingTimeMatch ? parseInt(playingTimeMatch[1]) : 0;
+    const minPlayingTime = minPlayingTimeMatch ? parseInt(minPlayingTimeMatch[1]) : playingTime;
     const minPlayers = minPlayersMatch ? parseInt(minPlayersMatch[1]) : 1;
     const maxPlayers = maxPlayersMatch ? parseInt(maxPlayersMatch[1]) : 4;
 
     console.log(`Raw parsed values:`, {
       complexityMatch: complexityMatch ? complexityMatch[1] : 'not found',
       playingTimeMatch: playingTimeMatch ? playingTimeMatch[1] : 'not found',
+      minPlayingTimeMatch: minPlayingTimeMatch ? minPlayingTimeMatch[1] : 'not found',
       minPlayersMatch: minPlayersMatch ? minPlayersMatch[1] : 'not found',
       maxPlayersMatch: maxPlayersMatch ? maxPlayersMatch[1] : 'not found',
     });
@@ -110,7 +118,7 @@ export async function GET(request: Request) {
       id,
       name: nameMatch ? nameMatch[1] : '',
       complexity: Math.min(5, Math.max(0, complexity)), // Clamp to 0-5 range
-      minPlayingTime: playingTime,
+      minPlayingTime: minPlayingTime,
       maxPlayingTime: playingTime,
       minPlayers,
       maxPlayers,
@@ -122,7 +130,8 @@ export async function GET(request: Request) {
       id,
       name: game.name,
       complexity: game.complexity,
-      playingTime: game.minPlayingTime,
+      minPlayingTime: game.minPlayingTime,
+      maxPlayingTime: game.maxPlayingTime,
       minPlayers: game.minPlayers,
       maxPlayers: game.maxPlayers,
     });
