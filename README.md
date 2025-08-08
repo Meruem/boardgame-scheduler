@@ -75,7 +75,7 @@ A modern web application for scheduling and managing board game sessions. Built 
 2. **Set environment variables** in Vercel dashboard:
    - Go to your project settings
    - Navigate to "Environment Variables"
-   - Add: `DATABASE_URL` = `file:./prisma/prod.db`
+   - Add: `DATABASE_URL` = `file:/tmp/prisma.db`
 3. **Deploy** - Vercel will automatically run the build script which includes:
    - `prisma generate` - Generate Prisma client
    - `prisma migrate deploy` - Apply database migrations
