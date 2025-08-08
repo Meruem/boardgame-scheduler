@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     
     // Debug: Log the XML response
     console.log(`BGG Details for ID ${id}: XML length: ${xmlText.length}`);
-    console.log(`XML sample: ${xmlText.substring(0, 1000)}...`);
+    console.log(`XML sample: ${xmlText.substring(0, 2000)}...`);
     
     // Debug: Search for specific patterns in the XML
     const hasAverageweight = xmlText.includes('averageweight');
@@ -47,6 +47,18 @@ export async function GET(request: Request) {
       minplayers: hasMinplayers,
       maxplayers: hasMaxplayers,
     });
+    
+    // Debug: Find the actual positions of these fields
+    if (hasAverageweight) {
+      const avgIndex = xmlText.indexOf('averageweight');
+      console.log(`averageweight found at position: ${avgIndex}`);
+      console.log(`averageweight context: ${xmlText.substring(avgIndex - 50, avgIndex + 100)}`);
+    }
+    if (hasPlayingtime) {
+      const timeIndex = xmlText.indexOf('playingtime');
+      console.log(`playingtime found at position: ${timeIndex}`);
+      console.log(`playingtime context: ${xmlText.substring(timeIndex - 50, timeIndex + 100)}`);
+    }
     
     // Parse XML using regex for basic extraction
     // Try to find name with value attribute first, then fallback to text content
