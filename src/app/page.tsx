@@ -265,7 +265,7 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
   const isFull = session.signups.length >= session.maxPlayers;
   
   // Check if session is retired (scheduledAt + maxTimeMinutes < now)
-  const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
+  const sessionEndTime = new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000);
   const isRetired = sessionEndTime < new Date();
 
   return (
