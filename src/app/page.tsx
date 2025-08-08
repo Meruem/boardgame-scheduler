@@ -5,7 +5,7 @@ import GameAutocomplete from '@/components/GameAutocomplete';
 import LanguageSelector from '@/components/LanguageSelector';
 import Comments from '@/components/Comments';
 import { GameSession, Signup } from '@/generated/prisma';
-import { Locale, t, getInitialLocale, formatDate, formatDateForLane } from '@/lib/i18n';
+import { Locale, t, getInitialLocale, formatDateForLane } from '@/lib/i18n';
 import type { BGGGame } from '@/lib/bgg';
 import { useAuth } from '@/lib/auth';
 import LoginModal from '@/components/LoginModal';
@@ -98,6 +98,7 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'retired'>('active');
+  const [pendingAction, setPendingAction] = useState<'create' | null>(null);
 
   useEffect(() => {
     if (isClient) {
@@ -255,6 +256,7 @@ export default function Home() {
           <button
             onClick={() => {
               if (!isAuthenticated) {
+                setPendingAction('create');
                 setShowLoginModal(true);
               } else {
                 setShowCreateForm(true);
@@ -298,6 +300,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (!isAuthenticated) {
+                  setPendingAction('create');
                   setShowLoginModal(true);
                 } else {
                   setShowCreateForm(true);
@@ -336,7 +339,11 @@ export default function Home() {
           onClose={() => setShowLoginModal(false)}
           onSuccess={() => {
             setShowLoginModal(false);
-            // Just close the modal, don't open create form
+            // Handle pending action after successful login
+            if (pendingAction === 'create') {
+              setShowCreateForm(true);
+              setPendingAction(null);
+            }
           }}
           locale={locale}
           title={t(locale, 'login')}
@@ -420,14 +427,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     }
   };
 
-  const formatSessionDate = (dateString: string) => {
-    if (!dateString) return '';
-    try {
-      return formatDate(new Date(dateString), locale);
-    } catch {
-      return dateString;
-    }
-  };
+
 
   const formatSessionTimeRange = (session: GameSessionWithSignups) => {
     try {
@@ -1218,7 +1218,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 }
 
 function EditSessionForm({ session, onClose, onSuccess, locale }: { session: GameSessionWithSignups; onClose: () => void; onSuccess: () => void; locale: Locale }) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
@@ -1616,7 +1616,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
         onSuccess={() => {
           setShowLoginModal(false);
           // Retry form submission after login
-          handleSubmit(new Event('submit') as any);
+          const formEvent = new Event('submit') as unknown as React.FormEvent;
+          handleSubmit(formEvent);
         }}
         locale={locale}
         title={t(locale, 'editSession')}
