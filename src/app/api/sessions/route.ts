@@ -12,7 +12,11 @@ export async function GET() {
     });
 
     // Filter out retired sessions (scheduledAt + maxTimeMinutes < now)
+    // Sessions without scheduledAt never expire
     const activeSessions = sessions.filter(session => {
+      if (!session.scheduledAt) {
+        return true; // Sessions without date never expire
+      }
       const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
       return sessionEndTime >= now;
     });
@@ -36,8 +40,10 @@ export async function POST(request: Request) {
           if (
             typeof boardGameName !== "string" ||
             !boardGameName.trim() ||
-            typeof scheduledAt !== "string" ||
-            Number.isNaN(Date.parse(scheduledAt)) ||
+            (scheduledAt !== null && scheduledAt !== undefined && (
+              typeof scheduledAt !== "string" ||
+              Number.isNaN(Date.parse(scheduledAt))
+            )) ||
             typeof maxPlayers !== "number" ||
             !Number.isInteger(maxPlayers) ||
             maxPlayers <= 0 ||
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
                 const created = await prisma.gameSession.create({
               data: {
                 boardGameName: boardGameName.trim(),
-                scheduledAt: new Date(scheduledAt),
+                scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
                 maxPlayers,
                 complexity,
                 minTimeMinutes,

@@ -26,16 +26,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
     console.log('Update session request body:', body);
               const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer } = body ?? {};
 
-    // Validate input
+        // Validate input
     if (
       typeof boardGameName !== "string" ||
       !boardGameName.trim() ||
-      typeof scheduledAt !== "string" ||
-      Number.isNaN(Date.parse(scheduledAt)) ||
+      (scheduledAt !== null && scheduledAt !== undefined && (
+        typeof scheduledAt !== "string" ||
+        Number.isNaN(Date.parse(scheduledAt))
+      )) ||
       typeof maxPlayers !== "number" ||
       !Number.isInteger(maxPlayers) ||
-              maxPlayers <= 0
-      ) {
+      maxPlayers <= 0
+    ) {
       return NextResponse.json(
         { error: "Invalid input" },
         { status: 400 }
@@ -82,7 +84,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
               console.log('Attempting to update session with data:', {
             id,
             boardGameName: boardGameName.trim(),
-            scheduledAt: new Date(scheduledAt),
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
             maxPlayers,
             complexity: finalComplexity,
             minTimeMinutes: finalMinTimeMinutes,
@@ -95,7 +97,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
             where: { id },
             data: {
               boardGameName: boardGameName.trim(),
-              scheduledAt: new Date(scheduledAt),
+              scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
               maxPlayers,
               complexity: finalComplexity,
               minTimeMinutes: finalMinTimeMinutes,

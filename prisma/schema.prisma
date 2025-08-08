@@ -14,7 +14,7 @@ datasource db {
 model GameSession {
   id             String    @id @default(cuid())
   boardGameName  String
-  scheduledAt    DateTime
+  scheduledAt    DateTime?
   maxPlayers     Int
   complexity     Float     @default(2.0)
   minTimeMinutes Int       @default(60)

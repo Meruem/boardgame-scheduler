@@ -139,6 +139,7 @@ export interface Translations {
   continue: string;
   login: string;
   logout: string;
+  unscheduled: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -280,6 +281,7 @@ const translations: Record<Locale, Translations> = {
     continue: 'Continue',
     login: 'Login',
     logout: 'Logout',
+    unscheduled: 'Unscheduled',
   },
   cs: {
     // Common
@@ -419,6 +421,7 @@ const translations: Record<Locale, Translations> = {
     continue: 'Pokračovat',
     login: 'Přihlásit',
     logout: 'Odhlásit',
+    unscheduled: 'Bez data',
   },
 };
 

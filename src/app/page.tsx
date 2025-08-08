@@ -41,7 +41,19 @@ const groupSessionsByDate = (sessions: GameSessionWithSignups[], locale: Locale)
     return [];
   }
   
+  // Create special lane for sessions without date (first)
+  const unscheduledLane: DateLane = {
+    date: 'unscheduled',
+    dateLabel: locale === 'cs' ? 'Bez data' : 'Unscheduled',
+    sessions: []
+  };
+  
   sessions.forEach(session => {
+    if (!session.scheduledAt) {
+      unscheduledLane.sessions.push(session);
+      return;
+    }
+    
     const sessionDate = new Date(session.scheduledAt);
     const dateKey = sessionDate.toDateString();
     
@@ -77,14 +89,21 @@ const groupSessionsByDate = (sessions: GameSessionWithSignups[], locale: Locale)
   }
   
   // Sort lanes by date and sessions within each lane by time
-  return Object.values(lanes)
+  const sortedLanes = Object.values(lanes)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(lane => ({
       ...lane,
       sessions: lane.sessions.sort((a, b) => 
-        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+        new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime()
       )
     }));
+  
+  // Add unscheduled lane at the beginning if it has sessions
+  if (unscheduledLane.sessions.length > 0) {
+    return [unscheduledLane, ...sortedLanes];
+  }
+  
+  return sortedLanes;
 };
 
 export default function Home() {
@@ -430,6 +449,10 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
 
   const formatSessionTimeRange = (session: GameSessionWithSignups) => {
+    if (!session.scheduledAt) {
+      return locale === 'cs' ? 'Bez data' : 'Unscheduled';
+    }
+    
     try {
       const startTime = new Date(session.scheduledAt);
       const endTime = new Date(startTime.getTime() + session.maxTimeMinutes * 60 * 1000);
@@ -451,8 +474,9 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     }
   };
 
-  const sessionEndTime = new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000);
-  const isRetired = sessionEndTime < new Date();
+  const isRetired = session.scheduledAt ? 
+    new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000) < new Date() : 
+    false;
   const isFull = session.signups.length >= session.maxPlayers;
 
   const handleAuthenticatedAction = (action: 'join' | 'edit' | 'delete') => {
@@ -840,6 +864,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     maxTimeMinutes: 60,
     description: '',
     organizer: user?.name || 'Unknown Organizer',
+    isUnscheduled: false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -870,6 +895,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
       maxTimeMinutes: 60,
       description: '',
       organizer: user?.name || 'Unknown Organizer',
+      isUnscheduled: false,
     });
   }, [user?.name]);
 
@@ -888,8 +914,8 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     setSubmitting(true);
 
     try {
-      // Combine date and start time for scheduledAt
-      const scheduledAt = `${formData.date}T${formData.startTime}`;
+      // Combine date and start time for scheduledAt (only if not unscheduled)
+      const scheduledAt = formData.isUnscheduled ? null : `${formData.date}T${formData.startTime}`;
       
       const response = await fetch('/api/sessions', {
         method: 'POST',
@@ -973,6 +999,23 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
               </div>
 
               <div>
+                <label className="flex items-center space-x-2 mb-1">
+                  <input
+                    type="checkbox"
+                    checked={formData.isUnscheduled}
+                    onChange={(e) => setFormData({ ...formData, isUnscheduled: e.target.checked })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {t(locale, 'unscheduled')}
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  {locale === 'cs' ? 'Sezení bez konkrétního data a času' : 'Session without specific date and time'}
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t(locale, 'date')}
                 </label>
@@ -980,8 +1023,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  required
+                  className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  required={!formData.isUnscheduled}
+                  disabled={formData.isUnscheduled}
                 />
               </div>
 
@@ -995,8 +1039,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                       type="time"
                       value={formData.startTime}
                       onChange={handleStartTimeChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                      required
+                      className={`w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      required={!formData.isUnscheduled}
+                      disabled={formData.isUnscheduled}
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
                       <button
@@ -1028,6 +1073,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                     </div>
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t(locale, 'endTime')}
@@ -1037,12 +1083,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
                       type="time"
                       value={formData.endTime}
                       onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className={`w-full border rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 text-gray-900 bg-white ${
-                        errors.endTime 
-                          ? 'border-red-500 focus:ring-red-500' 
-                          : 'border-gray-300 focus:ring-blue-500'
-                      }`}
-                      required
+                      className={`w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      required={!formData.isUnscheduled}
+                      disabled={formData.isUnscheduled}
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
                       <button
@@ -1233,8 +1276,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     return `${hours}:${minutes}`;
   };
 
-  const sessionDate = new Date(session.scheduledAt);
-  const endTime = new Date(sessionDate.getTime() + session.maxTimeMinutes * 60 * 1000);
+  const isUnscheduled = !session.scheduledAt;
+  const sessionDate = session.scheduledAt ? new Date(session.scheduledAt) : new Date();
+  const endTime = session.scheduledAt ? new Date(sessionDate.getTime() + session.maxTimeMinutes * 60 * 1000) : new Date();
 
   const [formData, setFormData] = useState({
     boardGameName: session.boardGameName,
@@ -1247,6 +1291,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     maxTimeMinutes: session.maxTimeMinutes || 60,
     description: session.description || '',
     organizer: session.organizer || 'Unknown Organizer',
+    isUnscheduled: isUnscheduled,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -1282,8 +1327,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     setError('');
 
     try {
-      // Combine date and start time for scheduledAt
-      const scheduledAt = `${formData.date}T${formData.startTime}`;
+      // Combine date and start time for scheduledAt (only if not unscheduled)
+      const scheduledAt = formData.isUnscheduled ? null : `${formData.date}T${formData.startTime}`;
       
       const response = await fetch(`/api/sessions/${session.id}`, {
         method: 'PUT',
@@ -1359,6 +1404,23 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
               </div>
 
               <div>
+                <label className="flex items-center space-x-2 mb-1">
+                  <input
+                    type="checkbox"
+                    checked={formData.isUnscheduled}
+                    onChange={(e) => setFormData({ ...formData, isUnscheduled: e.target.checked })}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {t(locale, 'unscheduled')}
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  {locale === 'cs' ? 'Sezení bez konkrétního data a času' : 'Session without specific date and time'}
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t(locale, 'date')}
                 </label>
@@ -1366,8 +1428,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  required
+                  className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  required={!formData.isUnscheduled}
+                  disabled={formData.isUnscheduled}
                 />
               </div>
 
@@ -1381,8 +1444,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                       type="time"
                       value={formData.startTime}
                       onChange={handleStartTimeChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                      required
+                      className={`w-full border border-gray-300 rounded-lg px-3 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      required={!formData.isUnscheduled}
+                      disabled={formData.isUnscheduled}
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
                       <button
@@ -1427,8 +1491,9 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                         error && error.includes('End time') 
                           ? 'border-red-500 focus:ring-red-500' 
                           : 'border-gray-300 focus:ring-blue-500'
-                      }`}
-                      required
+                      } ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      required={!formData.isUnscheduled}
+                      disabled={formData.isUnscheduled}
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col">
                       <button
