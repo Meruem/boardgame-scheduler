@@ -18,7 +18,7 @@ A modern web application for scheduling and managing board game sessions. Built 
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS v4
-- **Database**: SQLite with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM (SQLite for local development)
 - **External APIs**: BoardGameGeek.com XML API
 - **Deployment**: Vercel
 
@@ -72,13 +72,17 @@ A modern web application for scheduling and managing board game sessions. Built 
 ### Vercel Deployment
 
 1. **Connect your repository** to Vercel
-2. **Set environment variables** in Vercel dashboard:
+2. **Set up Vercel Postgres** (recommended):
+   - In your Vercel dashboard, go to Storage
+   - Create a new Postgres database
+   - Vercel will automatically add the `DATABASE_URL` environment variable
+3. **Alternative: Set environment variables manually**:
    - Go to your project settings
    - Navigate to "Environment Variables"
-   - Add: `DATABASE_URL` = `file:/tmp/prisma.db`
-3. **Deploy** - Vercel will automatically run the build script which includes:
+   - Add: `DATABASE_URL` = Your PostgreSQL connection string
+4. **Deploy** - Vercel will automatically run the build script which includes:
    - `prisma generate` - Generate Prisma client
-   - `prisma migrate deploy` - Apply database migrations
+   - `prisma db push` - Apply schema changes
    - `next build` - Build the application
 
 ### Environment Variables
