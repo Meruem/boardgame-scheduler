@@ -20,9 +20,11 @@ const useIsClient = () => {
 
 export default function Home() {
   const isClient = useIsClient();
-  const [sessions, setSessions] = useState<GameSessionWithSignups[]>([]);
+  const [activeSessions, setActiveSessions] = useState<GameSessionWithSignups[]>([]);
+  const [retiredSessions, setRetiredSessions] = useState<GameSessionWithSignups[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'active' | 'retired'>('active');
 
   useEffect(() => {
     fetchSessions();
@@ -30,9 +32,16 @@ export default function Home() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/api/sessions');
-      const data = await response.json();
-      setSessions(data);
+      const [activeResponse, retiredResponse] = await Promise.all([
+        fetch('/api/sessions'),
+        fetch('/api/sessions/retired')
+      ]);
+      
+      const activeData = await activeResponse.json();
+      const retiredData = await retiredResponse.json();
+      
+      setActiveSessions(activeData);
+      setRetiredSessions(retiredData);
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
     } finally {
@@ -92,7 +101,7 @@ export default function Home() {
 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
-            Upcoming Sessions
+            Game Sessions
           </h2>
           <button
             onClick={() => setShowCreateForm(true)}
@@ -102,7 +111,31 @@ export default function Home() {
           </button>
         </div>
 
-        {isClient && sessions.length === 0 ? (
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              activeTab === 'active'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Active Sessions ({activeSessions.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('retired')}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              activeTab === 'retired'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Retired Sessions ({retiredSessions.length})
+          </button>
+        </div>
+
+        {isClient && activeSessions.length === 0 && retiredSessions.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg mb-4">
               No sessions scheduled yet
@@ -116,7 +149,10 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {sessions.map((session) => (
+            {activeTab === 'active' && activeSessions.map((session) => (
+              <SessionCard key={session.id} session={session} onUpdate={fetchSessions} />
+            ))}
+            {activeTab === 'retired' && retiredSessions.map((session) => (
               <SessionCard key={session.id} session={session} onUpdate={fetchSessions} />
             ))}
           </div>
@@ -227,6 +263,10 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
   };
 
   const isFull = session.signups.length >= session.maxPlayers;
+  
+  // Check if session is retired (scheduledAt + maxTimeMinutes < now)
+  const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
+  const isRetired = sessionEndTime < new Date();
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -242,8 +282,14 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
       <div className="mb-4">
         <div className="flex justify-between text-sm text-gray-600 mb-2">
           <span>Players: {session.signups.length}/{session.maxPlayers}</span>
-          <span className={isFull ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
-            {isFull ? 'Full' : 'Open'}
+          <span className={
+            isRetired 
+              ? 'text-gray-500 font-medium' 
+              : isFull 
+                ? 'text-red-600 font-medium' 
+                : 'text-green-600 font-medium'
+          }>
+            {isRetired ? 'Finished' : isFull ? 'Full' : 'Open'}
           </span>
         </div>
         
@@ -309,7 +355,7 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
       </div>
 
       <div className="flex gap-2">
-        {!isFull && (
+        {!isRetired && !isFull && (
           <button
             onClick={() => setShowSignupForm(true)}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
@@ -317,15 +363,22 @@ function SessionCard({ session, onUpdate }: { session: GameSessionWithSignups; o
             Join Session
           </button>
         )}
-        <button
-          onClick={() => setShowEditForm(true)}
-          className="px-3 py-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-lg font-medium transition-all duration-200"
-          title="Edit session"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
+        {isRetired && (
+          <div className="flex-1 bg-gray-100 text-gray-500 py-2 rounded-lg font-medium text-center">
+            Session Finished
+          </div>
+        )}
+        {!isRetired && (
+          <button
+            onClick={() => setShowEditForm(true)}
+            className="px-3 py-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-lg font-medium transition-all duration-200"
+            title="Edit session"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+        )}
         <button
           onClick={() => setShowDeleteConfirm(true)}
           className="px-3 py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg font-medium transition-all duration-200"

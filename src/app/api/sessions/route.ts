@@ -3,11 +3,21 @@ import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const now = new Date();
+    
+    // Get all sessions
     const sessions = await prisma.gameSession.findMany({
       orderBy: { scheduledAt: "asc" },
       include: { signups: true },
     });
-    return NextResponse.json(sessions);
+
+    // Filter out retired sessions (scheduledAt + maxTimeMinutes < now)
+    const activeSessions = sessions.filter(session => {
+      const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
+      return sessionEndTime >= now;
+    });
+
+    return NextResponse.json(activeSessions);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     return NextResponse.json(
