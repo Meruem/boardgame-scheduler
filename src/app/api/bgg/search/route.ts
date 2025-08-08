@@ -154,6 +154,9 @@ export async function GET(request: Request) {
     return NextResponse.json(results);
   } catch (error) {
     console.error('Error searching board games:', error);
-    return NextResponse.json([]);
+    return NextResponse.json(
+      { error: "Failed to search board games" },
+      { status: 500 }
+    );
   }
 }

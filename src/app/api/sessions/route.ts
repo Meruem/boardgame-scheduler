@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const sessions = await prisma.gameSession.findMany({
-    orderBy: { scheduledAt: "asc" },
-    include: { signups: true },
-  });
-  return NextResponse.json(sessions);
+  try {
+    const sessions = await prisma.gameSession.findMany({
+      orderBy: { scheduledAt: "asc" },
+      include: { signups: true },
+    });
+    return NextResponse.json(sessions);
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
+    return NextResponse.json(
+      { error: "Failed to fetch sessions" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

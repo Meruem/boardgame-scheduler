@@ -77,6 +77,9 @@ export async function GET(request: Request) {
     return NextResponse.json(game);
   } catch (error) {
     console.error('Error fetching board game details:', error);
-    return NextResponse.json({ error: 'Failed to fetch game details' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch game details' }, 
+      { status: 500 }
+    );
   }
 }

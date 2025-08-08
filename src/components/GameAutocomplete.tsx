@@ -14,7 +14,8 @@ interface BGGGame {
   id: string;
   name: string;
   complexity: number;
-  playingTime: number;
+  minPlayingTime: number;
+  maxPlayingTime: number;
   minPlayers: number;
   maxPlayers: number;
   description?: string;
