@@ -26,8 +26,8 @@ export async function GET(request: Request) {
 
     // Filter sessions that are actually retired (scheduledAt + maxTimeMinutes < now)
     const retiredSessions = sessions.filter(session => {
-      if (!session.scheduledAt) {
-        return false; // Sessions without date are never retired
+      if (!session.scheduledAt || !session.maxTimeMinutes) {
+        return false; // Sessions without date or max time are never retired
       }
       const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
       return sessionEndTime < now;

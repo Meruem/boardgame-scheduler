@@ -265,8 +265,8 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
                       <header className="mb-8">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t(currentLocale, 'events')}</h1>
-                            <p className="text-gray-600 text-lg">{t(currentLocale, 'selectEvent')}</p>
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t(currentLocale, 'title')}</h1>
+                            <p className="text-gray-600 text-lg">{t(currentLocale, 'subtitle')}</p>
                           </div>
                           <div className="flex items-center gap-4">
                             {/* User Display */}

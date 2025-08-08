@@ -204,7 +204,7 @@ export default function Home() {
   // Show event selector if no event is selected
   const [showEventSelector, setShowEventSelector] = useState(false);
   
-  if (showEventSelector) {
+  if (showEventSelector || !selectedEvent) {
     return <EventSelector onEventSelect={(event) => {
       setSelectedEvent(event);
       setShowEventSelector(false);
@@ -249,22 +249,14 @@ export default function Home() {
                 <span className="text-sm text-gray-500">{t(locale, 'currentEvent')}:</span>
                 <span className="text-lg font-semibold text-blue-600">{selectedEvent?.name || t(locale, 'allSessions')}</span>
                 <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="text-sm text-blue-500 hover:text-blue-700 underline"
+                  onClick={() => setShowEventSelector(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1 px-3 rounded-lg transition-colors text-sm"
                 >
                   {t(locale, 'changeEvent')}
                 </button>
               </div>
             </div>
                           <div className="flex items-center gap-4">
-                {/* Event Selector Button */}
-                <button
-                  onClick={() => setShowEventSelector(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  {selectedEvent ? t(locale, 'changeEvent') : t(locale, 'selectEvent')}
-                </button>
-                
                 {/* User Display */}
                 {isAuthenticated ? (
                 <div className="relative user-dropdown">

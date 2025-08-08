@@ -20,10 +20,10 @@ export async function GET(request: Request) {
     });
 
     // Filter out retired sessions (scheduledAt + maxTimeMinutes < now)
-    // Sessions without scheduledAt never expire
+    // Sessions without scheduledAt or maxTimeMinutes never expire
     const activeSessions = sessions.filter(session => {
-      if (!session.scheduledAt) {
-        return true; // Sessions without date never expire
+      if (!session.scheduledAt || !session.maxTimeMinutes) {
+        return true; // Sessions without date or max time never expire
       }
       const sessionEndTime = new Date(session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000);
       return sessionEndTime >= now;

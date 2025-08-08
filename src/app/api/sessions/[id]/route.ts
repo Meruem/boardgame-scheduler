@@ -98,7 +98,16 @@ export async function PUT(request: Request, { params }: RouteParams) {
             organizer: organizer?.trim() || 'Unknown Organizer',
           });
 
-          const updateData: any = {
+          const updateData: {
+            boardGameName: string;
+            scheduledAt?: Date;
+            maxPlayers: number;
+            complexity: number;
+            description: string | null;
+            organizer: string;
+            minTimeMinutes?: number;
+            maxTimeMinutes?: number;
+          } = {
             boardGameName: boardGameName.trim(),
             scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
             maxPlayers,
