@@ -129,6 +129,13 @@ export interface Translations {
   commentContentRequired: string;
   commentPlaceholder: string;
   beFirstToShareThoughts: string;
+  
+  // Authentication
+  loginRequired: string;
+  enterYourName: string;
+  nameRequired: string;
+  nameTooShort: string;
+  continue: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -260,6 +267,13 @@ const translations: Record<Locale, Translations> = {
     commentContentRequired: 'Comment content is required',
     commentPlaceholder: 'Write a comment...',
     beFirstToShareThoughts: 'Be the first to share your thoughts!',
+    
+    // Authentication
+    loginRequired: 'Login Required',
+    enterYourName: 'Enter your name',
+    nameRequired: 'Name is required',
+    nameTooShort: 'Name must be at least 2 characters',
+    continue: 'Continue',
   },
   cs: {
     // Common
@@ -389,6 +403,13 @@ const translations: Record<Locale, Translations> = {
     commentContentRequired: 'Obsah komentáře je povinný',
     commentPlaceholder: 'Napište komentář...',
     beFirstToShareThoughts: 'Buďte první, kdo sdílí své myšlenky!',
+    
+    // Authentication
+    loginRequired: 'Přihlášení vyžadováno',
+    enterYourName: 'Zadejte své jméno',
+    nameRequired: 'Jméno je povinné',
+    nameTooShort: 'Jméno musí mít alespoň 2 znaky',
+    continue: 'Pokračovat',
   },
 };
 

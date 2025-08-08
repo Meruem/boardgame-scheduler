@@ -7,6 +7,8 @@ import Comments from '@/components/Comments';
 import { GameSession, Signup } from '@/generated/prisma';
 import { Locale, t, getInitialLocale, formatDate, formatDateForLane } from '@/lib/i18n';
 import type { BGGGame } from '@/lib/bgg';
+import { useAuth } from '@/lib/auth';
+import LoginModal from '@/components/LoginModal';
 
 // Extended type to include signups
 type GameSessionWithSignups = GameSession & {
@@ -254,25 +256,27 @@ export default function Home() {
 }
 
 function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSignups; onUpdate: () => void; locale: Locale }) {
+  const { user, isAuthenticated } = useAuth();
   const [showSignupForm, setShowSignupForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [signupName, setSignupName] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'join' | 'edit' | 'delete' | null>(null);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupName.trim()) return;
+    if (!user?.name) return;
 
     try {
       const response = await fetch(`/api/sessions/${session.id}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName: signupName.trim() }),
+        body: JSON.stringify({ displayName: user.name }),
       });
 
       if (response.ok) {
-        setSignupName('');
         setShowSignupForm(false);
         onUpdate();
       } else {
@@ -359,6 +363,33 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
   const sessionEndTime = new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000);
   const isRetired = sessionEndTime < new Date();
   const isFull = session.signups.length >= session.maxPlayers;
+
+  const handleAuthenticatedAction = (action: 'join' | 'edit' | 'delete') => {
+    if (!isAuthenticated) {
+      setPendingAction(action);
+      setShowLoginModal(true);
+    } else {
+      switch (action) {
+        case 'join':
+          setShowSignupForm(true);
+          break;
+        case 'edit':
+          setShowEditForm(true);
+          break;
+        case 'delete':
+          setShowDeleteConfirm(true);
+          break;
+      }
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    if (pendingAction) {
+      handleAuthenticatedAction(pendingAction);
+      setPendingAction(null);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -452,7 +483,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
       <div className="flex gap-2">
         {!isRetired && !isFull && (
           <button
-            onClick={() => setShowSignupForm(true)}
+            onClick={() => handleAuthenticatedAction('join')}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
           >
             {t(locale, 'joinSession')}
@@ -465,7 +496,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
         )}
         {!isRetired && (
           <button
-            onClick={() => setShowEditForm(true)}
+            onClick={() => handleAuthenticatedAction('edit')}
             className="px-3 py-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-lg font-medium transition-all duration-200"
             title={t(locale, 'editSession')}
           >
@@ -475,7 +506,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           </button>
         )}
         <button
-          onClick={() => setShowDeleteConfirm(true)}
+          onClick={() => handleAuthenticatedAction('delete')}
           className="px-3 py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg font-medium transition-all duration-200"
           title={t(locale, 'deleteSession')}
         >
@@ -491,31 +522,25 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">{t(locale, 'joinSession')}: {session.boardGameName}</h3>
-              <form onSubmit={handleSignup}>
-                <input
-                  type="text"
-                  placeholder={t(locale, 'yourName')}
-                  value={signupName}
-                  onChange={(e) => setSignupName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  required
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
-                  >
-                    {t(locale, 'join')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowSignupForm(false)}
-                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    {t(locale, 'cancel')}
-                  </button>
-                </div>
-              </form>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">{t(locale, 'yourName')}:</p>
+                <p className="font-medium text-gray-900">{user?.name}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSignup}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  {t(locale, 'join')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSignupForm(false)}
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium transition-colors"
+                >
+                  {t(locale, 'cancel')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -566,6 +591,21 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
       
       {/* Comments Section */}
       <Comments sessionId={session.id} locale={locale} />
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setPendingAction(null);
+        }}
+        onSuccess={handleLoginSuccess}
+        locale={locale}
+        title={pendingAction === 'join' ? t(locale, 'joinSession') : 
+               pendingAction === 'edit' ? t(locale, 'editSession') : 
+               pendingAction === 'delete' ? t(locale, 'deleteSession') : 
+               t(locale, 'loginRequired')}
+      />
     </div>
   );
 }
@@ -657,6 +697,8 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
 }
 
 function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void; onSuccess: () => void; locale: Locale }) {
+  const { user, isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const getLocalDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -716,6 +758,12 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
     
     // Clear previous errors
     setErrors({});
@@ -1039,11 +1087,26 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
         </form>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          // Retry form submission after login
+          handleSubmit(new Event('submit') as any);
+        }}
+        locale={locale}
+        title={t(locale, 'createSession')}
+      />
     </div>
   );
 }
 
 function EditSessionForm({ session, onClose, onSuccess, locale }: { session: GameSessionWithSignups; onClose: () => void; onSuccess: () => void; locale: Locale }) {
+  const { user, isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1088,6 +1151,12 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check authentication
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
     
     // Validate that end time is not before start time
     if (formData.endTime < formData.startTime) {
@@ -1410,6 +1479,19 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
         </form>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          // Retry form submission after login
+          handleSubmit(new Event('submit') as any);
+        }}
+        locale={locale}
+        title={t(locale, 'editSession')}
+      />
     </div>
   );
 }
