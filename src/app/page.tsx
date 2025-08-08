@@ -334,6 +334,28 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     }
   };
 
+  const formatSessionTimeRange = (session: GameSessionWithSignups) => {
+    try {
+      const startTime = new Date(session.scheduledAt);
+      const endTime = new Date(startTime.getTime() + session.maxTimeMinutes * 60 * 1000);
+      
+      const formatTime = (date: Date) => {
+        return date.toLocaleTimeString(locale === 'cs' ? 'cs-CZ' : 'en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      };
+      
+      const startTimeStr = formatTime(startTime);
+      const endTimeStr = formatTime(endTime);
+      
+      return `${startTimeStr} - ${endTimeStr}`;
+    } catch {
+      return '';
+    }
+  };
+
   const sessionEndTime = new Date(new Date(session.scheduledAt).getTime() + session.maxTimeMinutes * 60 * 1000);
   const isRetired = sessionEndTime < new Date();
   const isFull = session.signups.length >= session.maxPlayers;
@@ -385,7 +407,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
         </div>
 
         <div className="text-sm text-gray-600 mb-3">
-          <span className="font-medium">{t(locale, 'scheduledFor')}:</span> {formatSessionDate(session.scheduledAt.toString())}
+          <span className="font-medium">{t(locale, 'scheduledFor')}:</span> {formatSessionTimeRange(session)}
         </div>
 
         {session.description && (

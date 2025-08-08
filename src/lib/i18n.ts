@@ -170,7 +170,7 @@ const translations: Record<Locale, Translations> = {
     minTime: 'Min Time',
     maxTime: 'Max Time',
     description: 'Description',
-    scheduledFor: 'Scheduled for',
+    scheduledFor: 'Time',
     minutes: 'min',
     signedUp: 'Signed up',
     
@@ -299,7 +299,7 @@ const translations: Record<Locale, Translations> = {
     minTime: 'Min Čas',
     maxTime: 'Max Čas',
     description: 'Popis',
-    scheduledFor: 'Naplánováno na',
+    scheduledFor: 'Čas',
     minutes: 'min',
     signedUp: 'Přihlášeni',
     
