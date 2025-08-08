@@ -23,7 +23,7 @@ interface EventSelectorProps {
 }
 
 export default function EventSelector({ onEventSelect, locale, onLocaleChange }: EventSelectorProps) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, login } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [finishedEvents, setFinishedEvents] = useState<Event[]>([]);
@@ -513,7 +513,6 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
               const name = formData.get('name') as string;
               if (name && name.trim()) {
                 // Use the auth context's login function
-                const { login } = useAuth();
                 login(name.trim());
                 setShowLoginModal(false);
               }
