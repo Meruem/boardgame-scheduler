@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import GameAutocomplete from '@/components/GameAutocomplete';
 import LanguageSelector from '@/components/LanguageSelector';
 import Comments from '@/components/Comments';
@@ -918,6 +918,7 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
 
 function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: () => void; onSuccess: () => void; locale: Locale; eventId?: string }) {
   const { user } = useAuth();
+  const gameNameInputRef = useRef<HTMLInputElement>(null);
   const getLocalDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -981,6 +982,13 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
       isUnscheduled: false,
     });
   }, [user?.name]);
+
+  // Focus on game name input when form opens
+  useEffect(() => {
+    if (gameNameInputRef.current) {
+      gameNameInputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1081,6 +1089,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                   onChange={(value) => setFormData({ ...formData, boardGameName: value })}
                   onGameSelect={handleGameSelect}
                   placeholder={t(locale, 'searchBoardGame')}
+                  inputRef={gameNameInputRef}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t(locale, 'startTypingToSearchBoardGameGeek')}
@@ -1363,6 +1372,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
 function EditSessionForm({ session, onClose, onSuccess, locale }: { session: GameSessionWithSignups; onClose: () => void; onSuccess: () => void; locale: Locale }) {
   const { isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const gameNameInputRef = useRef<HTMLInputElement>(null);
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1409,6 +1419,13 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
       url: game.url || '',
     });
   };
+
+  // Focus on game name input when form opens
+  useEffect(() => {
+    if (gameNameInputRef.current) {
+      gameNameInputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1500,6 +1517,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   onChange={(value) => setFormData({ ...formData, boardGameName: value })}
                   onGameSelect={handleGameSelect}
                   placeholder={t(locale, 'searchBoardGame')}
+                  inputRef={gameNameInputRef}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t(locale, 'startTypingToSearchBoardGameGeek')}

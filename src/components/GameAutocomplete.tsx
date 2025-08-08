@@ -28,6 +28,7 @@ interface GameAutocompleteProps {
   onGameSelect: (game: BGGGame) => void;
   placeholder?: string;
   className?: string;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function GameAutocomplete({ 
@@ -35,7 +36,8 @@ export default function GameAutocomplete({
   onChange, 
   onGameSelect, 
   placeholder = "Search for a board game...",
-  className = ""
+  className = "",
+  inputRef
 }: GameAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<BGGSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,9 +45,12 @@ export default function GameAutocomplete({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [useFallback, setUseFallback] = useState(false);
   
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Use the passed ref if provided, otherwise use internal ref
+  const currentInputRef = inputRef || internalInputRef;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,11 +77,8 @@ export default function GameAutocomplete({
       if (!useFallback) {
         try {
           results = await searchBoardGames(query);
-          if (results.length === 0) {
-            // If BGG API fails, try fallback
-            setUseFallback(true);
-            results = searchFallbackGames(query);
-          }
+          // BGG API worked fine, even if no results found
+          // Don't switch to fallback just because no games matched the search
         } catch {
           console.log('BGG API failed, using fallback data');
           setUseFallback(true);
@@ -100,6 +102,11 @@ export default function GameAutocomplete({
     onChange(newValue);
     setSelectedIndex(-1);
     setShowSuggestions(true);
+
+    // Reset to BGG mode when input is cleared or user starts fresh
+    if (newValue.trim().length === 0) {
+      setUseFallback(false);
+    }
 
     // Clear previous timeout
     if (searchTimeoutRef.current) {
@@ -173,7 +180,7 @@ export default function GameAutocomplete({
   return (
     <div className={`relative ${className}`}>
       <input
-        ref={inputRef}
+        ref={currentInputRef}
         type="text"
         value={value}
         onChange={handleInputChange}
