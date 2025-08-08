@@ -140,6 +140,31 @@ export interface Translations {
   login: string;
   logout: string;
   unscheduled: string;
+  events: string;
+  event: string;
+  eventName: string;
+  createEvent: string;
+  editEvent: string;
+  deleteEvent: string;
+  selectEvent: string;
+  noEvents: string;
+  createFirstEvent: string;
+  eventCreated: string;
+  eventUpdated: string;
+  eventDeleted: string;
+  failedToCreateEvent: string;
+  failedToUpdateEvent: string;
+  failedToDeleteEvent: string;
+  eventNameRequired: string;
+  eventNameExists: string;
+  currentEvent: string;
+  changeEvent: string;
+  allSessions: string;
+  noSessionsFoundForEvent: string;
+  finishEvent: string;
+  finishedEvents: string;
+  confirmFinishEvent: string;
+  failedToFinishEvent: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -282,6 +307,31 @@ const translations: Record<Locale, Translations> = {
     login: 'Login',
     logout: 'Logout',
     unscheduled: 'Unscheduled',
+    events: 'Events',
+    event: 'Event',
+    eventName: 'Event Name',
+    createEvent: 'Create Event',
+    editEvent: 'Edit Event',
+    deleteEvent: 'Delete Event',
+    selectEvent: 'Select Event',
+    noEvents: 'No events found',
+    createFirstEvent: 'Create your first event',
+    eventCreated: 'Event created successfully',
+    eventUpdated: 'Event updated successfully',
+    eventDeleted: 'Event deleted successfully',
+    failedToCreateEvent: 'Failed to create event',
+    failedToUpdateEvent: 'Failed to update event',
+    failedToDeleteEvent: 'Failed to delete event',
+    eventNameRequired: 'Event name is required',
+    eventNameExists: 'Event with this name already exists',
+    currentEvent: 'Current Event',
+    changeEvent: 'Change Event',
+    allSessions: 'All Sessions',
+    noSessionsFoundForEvent: 'No sessions found for event',
+    finishEvent: 'Finish Event',
+    finishedEvents: 'Finished Events',
+    confirmFinishEvent: 'Are you sure you want to finish "{eventName}"?',
+    failedToFinishEvent: 'Failed to finish event',
   },
   cs: {
     // Common
@@ -422,6 +472,31 @@ const translations: Record<Locale, Translations> = {
     login: 'Přihlásit',
     logout: 'Odhlásit',
     unscheduled: 'Bez data',
+    events: 'Události',
+    event: 'Událost',
+    eventName: 'Název události',
+    createEvent: 'Vytvořit událost',
+    editEvent: 'Upravit událost',
+    deleteEvent: 'Smazat událost',
+    selectEvent: 'Vybrat událost',
+    noEvents: 'Nebyly nalezeny žádné události',
+    createFirstEvent: 'Vytvořte svou první událost',
+    eventCreated: 'Událost byla úspěšně vytvořena',
+    eventUpdated: 'Událost byla úspěšně aktualizována',
+    eventDeleted: 'Událost byla úspěšně smazána',
+    failedToCreateEvent: 'Nepodařilo se vytvořit událost',
+    failedToUpdateEvent: 'Nepodařilo se aktualizovat událost',
+    failedToDeleteEvent: 'Nepodařilo se smazat událost',
+    eventNameRequired: 'Název události je povinný',
+    eventNameExists: 'Událost s tímto názvem již existuje',
+    currentEvent: 'Aktuální událost',
+    changeEvent: 'Změnit událost',
+    allSessions: 'Všechny sezení',
+    noSessionsFoundForEvent: 'Pro událost nebyly nalezeny žádné sezení',
+    finishEvent: 'Ukončit událost',
+    finishedEvents: 'Ukončené události',
+    confirmFinishEvent: 'Opravdu chcete ukončit "{eventName}"?',
+    failedToFinishEvent: 'Nepodařilo se ukončit událost',
   },
 };
 

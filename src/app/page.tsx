@@ -9,11 +9,23 @@ import { Locale, t, getInitialLocale, formatDateForLane } from '@/lib/i18n';
 import type { BGGGame } from '@/lib/bgg';
 import { useAuth } from '@/lib/auth';
 import LoginModal from '@/components/LoginModal';
+import EventSelector from '@/components/EventSelector';
 
 // Extended type to include signups
 type GameSessionWithSignups = GameSession & {
   signups: Signup[];
 };
+
+interface Event {
+  id: string;
+  name: string;
+  finished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    sessions: number;
+  };
+}
 
 // Type for date lanes
 type DateLane = {
@@ -110,6 +122,7 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const isClient = useIsClient();
   const [locale, setLocale] = useState<Locale>('en');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [activeSessions, setActiveSessions] = useState<GameSessionWithSignups[]>([]);
   const [retiredSessions, setRetiredSessions] = useState<GameSessionWithSignups[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,7 +142,7 @@ export default function Home() {
     if (isClient && locale) {
       fetchSessions();
     }
-  }, [isClient, locale]);
+  }, [isClient, locale, selectedEvent?.id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -153,9 +166,14 @@ export default function Home() {
 
   const fetchSessions = async () => {
     try {
+      const activeUrl = selectedEvent ? `/api/sessions?eventId=${selectedEvent.id}` : '/api/sessions';
+      const retiredUrl = selectedEvent ? `/api/sessions/retired?eventId=${selectedEvent.id}` : '/api/sessions/retired';
+      
+      console.log('Fetching sessions:', { selectedEvent: selectedEvent?.name, activeUrl, retiredUrl });
+      
       const [activeResponse, retiredResponse] = await Promise.all([
-        fetch('/api/sessions'),
-        fetch('/api/sessions/retired')
+        fetch(activeUrl),
+        fetch(retiredUrl)
       ]);
       
       const activeData = await activeResponse.json();
@@ -164,6 +182,7 @@ export default function Home() {
       // Ensure we always set arrays, even if the API returns unexpected data
       console.log('Active sessions data:', activeData);
       console.log('Retired sessions data:', retiredData);
+      console.log('Setting sessions:', { active: Array.isArray(activeData) ? activeData.length : 0, retired: Array.isArray(retiredData) ? retiredData.length : 0 });
       setActiveSessions(Array.isArray(activeData) ? activeData : []);
       setRetiredSessions(Array.isArray(retiredData) ? retiredData : []);
     } catch (error) {
@@ -180,8 +199,27 @@ export default function Home() {
   const activeLanes = groupSessionsByDate(activeSessions, locale);
   const retiredLanes = groupSessionsByDate(retiredSessions, locale).filter(lane => lane.sessions.length > 0);
 
+  // Show message if no sessions found for selected event
+  const noSessionsFound = selectedEvent && activeSessions.length === 0 && retiredSessions.length === 0;
+
+  const handleEventSelect = (event: Event) => {
+    console.log('Event selected:', event);
+    setSelectedEvent(event);
+    setLoading(true);
+  };
+
+  // Show event selector if no event is selected
+  const [showEventSelector, setShowEventSelector] = useState(false);
+  
+  if (showEventSelector) {
+    return <EventSelector onEventSelect={(event) => {
+      setSelectedEvent(event);
+      setShowEventSelector(false);
+    }} locale={locale} onLocaleChange={handleLocaleChange} />;
+  }
+
   if (!isClient || loading) {
-  return (
+    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-xl text-gray-700">{t(locale, 'loading')}</div>
       </div>
@@ -214,10 +252,28 @@ export default function Home() {
               <p className="text-gray-600">
                 {t(locale, 'subtitle')}
               </p>
+              <div className="mt-2 flex items-center gap-3">
+                <span className="text-sm text-gray-500">{t(locale, 'currentEvent')}:</span>
+                <span className="text-lg font-semibold text-blue-600">{selectedEvent?.name || t(locale, 'allSessions')}</span>
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="text-sm text-blue-500 hover:text-blue-700 underline"
+                >
+                  {t(locale, 'changeEvent')}
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              {/* User Display */}
-              {isAuthenticated ? (
+                          <div className="flex items-center gap-4">
+                {/* Event Selector Button */}
+                <button
+                  onClick={() => setShowEventSelector(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  {selectedEvent ? t(locale, 'changeEvent') : t(locale, 'selectEvent')}
+                </button>
+                
+                {/* User Display */}
+                {isAuthenticated ? (
                 <div className="relative user-dropdown">
                   <button
                     onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -314,7 +370,10 @@ export default function Home() {
         {isClient && activeSessions.length === 0 && retiredSessions.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg mb-4">
-              {t(locale, 'noSessionsScheduled')}
+              {selectedEvent 
+                ? `${t(locale, 'noSessionsFoundForEvent')} "${selectedEvent.name}"`
+                : t(locale, 'noSessionsScheduled')
+              }
             </div>
             <button
               onClick={() => {
@@ -349,6 +408,7 @@ export default function Home() {
               fetchSessions();
             }}
             locale={locale}
+            eventId={selectedEvent?.id}
           />
         )}
 
@@ -836,7 +896,7 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
   );
 }
 
-function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void; onSuccess: () => void; locale: Locale }) {
+function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: () => void; onSuccess: () => void; locale: Locale; eventId?: string }) {
   const { user } = useAuth();
   const getLocalDateString = () => {
     const now = new Date();
@@ -917,19 +977,24 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
       // Combine date and start time for scheduledAt (only if not unscheduled)
       const scheduledAt = formData.isUnscheduled ? null : `${formData.date}T${formData.startTime}`;
       
+      const requestBody = {
+        boardGameName: formData.boardGameName,
+        scheduledAt,
+        maxPlayers: formData.maxPlayers,
+        complexity: formData.complexity,
+        minTimeMinutes: formData.minTimeMinutes,
+        maxTimeMinutes: formData.maxTimeMinutes,
+        description: formData.description,
+        organizer: formData.organizer,
+        eventId: eventId,
+      };
+      
+      console.log('Creating session with eventId:', eventId, 'Request body:', requestBody);
+      
       const response = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          boardGameName: formData.boardGameName,
-          scheduledAt,
-          maxPlayers: formData.maxPlayers,
-          complexity: formData.complexity,
-          minTimeMinutes: formData.minTimeMinutes,
-          maxTimeMinutes: formData.maxTimeMinutes,
-          description: formData.description,
-          organizer: formData.organizer,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {

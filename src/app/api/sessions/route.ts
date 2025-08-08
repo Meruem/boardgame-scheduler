@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const eventId = searchParams.get('eventId');
+    
+    // For now, allow sessions without eventId for backward compatibility
+    // In the future, we can make this required
+
     const now = new Date();
     
-    // Get all sessions
+    // Get all sessions for the specified event (if provided)
+    // For backward compatibility, also include sessions without eventId when no specific event is selected
     const sessions = await prisma.gameSession.findMany({
+      where: eventId ? { eventId } : { eventId: null },
       orderBy: { scheduledAt: "asc" },
       include: { signups: true },
     });
@@ -21,6 +29,7 @@ export async function GET() {
       return sessionEndTime >= now;
     });
 
+    console.log('Sessions API response:', { eventId, totalSessions: sessions.length, activeSessions: activeSessions.length });
     return NextResponse.json(activeSessions);
   } catch (error) {
     console.error('Error fetching sessions:', error);
@@ -35,11 +44,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     console.log('Received session data:', body);
-    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer } = body ?? {};
+    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer, eventId } = body ?? {};
+    console.log('Received session data with eventId:', { eventId, boardGameName });
 
           if (
             typeof boardGameName !== "string" ||
             !boardGameName.trim() ||
+            (eventId !== null && eventId !== undefined && (
+              typeof eventId !== "string" ||
+              !eventId.trim()
+            )) ||
             (scheduledAt !== null && scheduledAt !== undefined && (
               typeof scheduledAt !== "string" ||
               Number.isNaN(Date.parse(scheduledAt))
@@ -74,6 +88,7 @@ export async function POST(request: Request) {
                 maxTimeMinutes,
                 description: description?.trim() || null,
                 organizer: organizer?.trim() || 'Unknown Organizer',
+                eventId: eventId?.trim() || null,
               },
             });
     return NextResponse.json(created, { status: 201 });
