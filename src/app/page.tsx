@@ -96,6 +96,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'retired'>('active');
 
   useEffect(() => {
@@ -109,6 +110,21 @@ export default function Home() {
       fetchSessions();
     }
   }, [isClient, locale]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showUserDropdown && !target.closest('.user-dropdown')) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserDropdown]);
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale);
@@ -182,17 +198,42 @@ export default function Home() {
             <div className="flex items-center gap-4">
               {/* User Display */}
               {isAuthenticated ? (
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium">
-                    {user?.name}
-                  </div>
+                <div className="relative user-dropdown">
                   <button
-                    onClick={logout}
-                    className="text-gray-600 hover:text-red-600 text-sm font-medium transition-colors"
-                    title={t(locale, 'logout')}
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
                   >
-                    {t(locale, 'logout')}
+                    <span>{user?.name}</span>
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showUserDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Logout clicked');
+                          logout();
+                          setShowUserDropdown(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        {t(locale, 'logout')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
@@ -212,7 +253,13 @@ export default function Home() {
             {t(locale, 'gameSessions')}
           </h2>
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                setShowLoginModal(true);
+              } else {
+                setShowCreateForm(true);
+              }
+            }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             {t(locale, 'createNewSession')}
@@ -249,7 +296,13 @@ export default function Home() {
               {t(locale, 'noSessionsScheduled')}
             </div>
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setShowLoginModal(true);
+                } else {
+                  setShowCreateForm(true);
+                }
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               {t(locale, 'createFirstSession')}
@@ -283,6 +336,7 @@ export default function Home() {
           onClose={() => setShowLoginModal(false)}
           onSuccess={() => {
             setShowLoginModal(false);
+            // Just close the modal, don't open create form
           }}
           locale={locale}
           title={t(locale, 'login')}
@@ -304,13 +358,13 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.name) return;
+    if (!signupName.trim()) return;
 
     try {
       const response = await fetch(`/api/sessions/${session.id}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName: user.name }),
+        body: JSON.stringify({ displayName: signupName.trim() }),
       });
 
       if (response.ok) {
@@ -408,6 +462,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     } else {
       switch (action) {
         case 'join':
+          setSignupName(user?.name || '');
           setShowSignupForm(true);
           break;
         case 'edit':
@@ -420,10 +475,23 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
     }
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (userName?: string) => {
     setShowLoginModal(false);
     if (pendingAction) {
-      handleAuthenticatedAction(pendingAction);
+      // Directly perform the action after successful login
+      switch (pendingAction) {
+        case 'join':
+          // Use the newly logged in user's name
+          setSignupName(userName || '');
+          setShowSignupForm(true);
+          break;
+        case 'edit':
+          setShowEditForm(true);
+          break;
+        case 'delete':
+          setShowDeleteConfirm(true);
+          break;
+      }
       setPendingAction(null);
     }
   };
@@ -559,17 +627,27 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">{t(locale, 'joinSession')}: {session.boardGameName}</h3>
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">{t(locale, 'yourName')}:</p>
-                <p className="font-medium text-gray-900">{user?.name}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSignup}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
-                >
-                  {t(locale, 'join')}
-                </button>
+              <form onSubmit={handleSignup}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t(locale, 'yourName')}
+                  </label>
+                  <input
+                    type="text"
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    placeholder={t(locale, 'yourName')}
+                    required
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors"
+                  >
+                    {t(locale, 'join')}
+                  </button>
                 <button
                   type="button"
                   onClick={() => setShowSignupForm(false)}
@@ -578,6 +656,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
                   {t(locale, 'cancel')}
                 </button>
               </div>
+              </form>
             </div>
           </div>
         </div>
@@ -638,10 +717,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
         }}
         onSuccess={handleLoginSuccess}
         locale={locale}
-        title={pendingAction === 'join' ? t(locale, 'joinSession') : 
-               pendingAction === 'edit' ? t(locale, 'editSession') : 
-               pendingAction === 'delete' ? t(locale, 'deleteSession') : 
-               t(locale, 'loginRequired')}
+        title={t(locale, 'loginRequired')}
       />
     </div>
   );
@@ -734,8 +810,6 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
 }
 
 function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void; onSuccess: () => void; locale: Locale }) {
-  const { user, isAuthenticated } = useAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const getLocalDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -795,12 +869,6 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Check authentication
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-      return;
-    }
     
     // Clear previous errors
     setErrors({});
@@ -1124,19 +1192,6 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
         </form>
         </div>
       </div>
-
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
-          setShowLoginModal(false);
-          // Retry form submission after login
-          handleSubmit(new Event('submit') as any);
-        }}
-        locale={locale}
-        title={t(locale, 'createSession')}
-      />
     </div>
   );
 }

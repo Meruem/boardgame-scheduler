@@ -8,7 +8,7 @@ import type { Locale } from '@/lib/i18n';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (userName?: string) => void;
   locale: Locale;
   title?: string;
 }
@@ -35,7 +35,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, locale, title }
     login(trimmedName);
     setError('');
     setName('');
-    onSuccess();
+    onSuccess(trimmedName);
   };
 
   const handleCancel = () => {

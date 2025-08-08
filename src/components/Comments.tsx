@@ -52,12 +52,6 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check authentication
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-      return;
-    }
-    
     if (!newComment.content.trim()) {
       setError(t(locale, 'commentContentRequired'));
       return;
@@ -148,8 +142,12 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
         </button>
         <button
           onClick={() => {
-            setShowAddForm(!showAddForm);
-            if (isCollapsed) setIsCollapsed(false);
+            if (!isAuthenticated) {
+              setShowLoginModal(true);
+            } else {
+              setShowAddForm(!showAddForm);
+              if (isCollapsed) setIsCollapsed(false);
+            }
           }}
           className="text-sm bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 p-2 rounded-lg transition-colors"
           title={t(locale, 'addComment')}
@@ -266,13 +264,12 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
         onClose={() => setShowLoginModal(false)}
         onSuccess={() => {
           setShowLoginModal(false);
-          // Retry the action that triggered the login
-          if (showAddForm) {
-            handleSubmit(new Event('submit') as any);
-          }
+          // Open comment form after successful login
+          setShowAddForm(true);
+          if (isCollapsed) setIsCollapsed(false);
         }}
         locale={locale}
-        title={t(locale, 'addComment')}
+        title={t(locale, 'loginRequired')}
       />
     </div>
   );
