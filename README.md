@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Board Game Scheduler
+
+A Next.js application for scheduling and managing board game sessions with friends. Built with Next.js 15, Prisma, SQLite, and Tailwind CSS.
+
+## Features
+
+- **Create Game Sessions**: Schedule board game sessions with custom game names, dates, and player limits
+- **Join Sessions**: Users can sign up for sessions with their display names
+- **Session Management**: View all upcoming sessions with player counts and signup status
+- **Real-time Updates**: See session changes immediately after creating or joining
+- **Responsive Design**: Works on desktop and mobile devices
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 with React 19, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: SQLite with Prisma ORM
+- **Styling**: Tailwind CSS v4
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm, yarn, pnpm, or bun
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd boardgame-scheduler
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up the database:
+```bash
+npx prisma generate
+npx prisma db push
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Start the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-To learn more about Next.js, take a look at the following resources:
+## Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Creating a Session
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Click "Create New Session" on the homepage
+2. Fill in the form:
+   - **Board Game Name**: Enter the name of the game (e.g., "Catan", "Ticket to Ride")
+   - **Date & Time**: Select when the session will take place
+   - **Max Players**: Set the maximum number of players allowed
+3. Click "Create Session"
 
-## Deploy on Vercel
+### Joining a Session
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Find a session you want to join on the homepage
+2. Click "Join Session" (only available if the session isn't full)
+3. Enter your display name
+4. Click "Join"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Viewing Sessions
+
+- All sessions are displayed on the homepage
+- Sessions show:
+  - Game name
+  - Scheduled date and time
+  - Current player count vs. maximum players
+  - List of signed-up players
+  - Status (Open/Full)
+
+## API Endpoints
+
+- `GET /api/sessions` - Get all sessions
+- `POST /api/sessions` - Create a new session
+- `GET /api/sessions/[id]` - Get a specific session
+- `POST /api/sessions/[id]/signup` - Join a session
+
+## Database Schema
+
+### GameSession
+- `id`: Unique identifier
+- `boardGameName`: Name of the board game
+- `scheduledAt`: When the session is scheduled
+- `maxPlayers`: Maximum number of players allowed
+- `createdAt`: When the session was created
+- `updatedAt`: When the session was last updated
+
+### Signup
+- `id`: Unique identifier
+- `displayName`: Player's display name
+- `sessionId`: Reference to the game session
+- `createdAt`: When the signup was created
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+### Database Commands
+
+- `npx prisma generate` - Generate Prisma client
+- `npx prisma db push` - Push schema changes to database
+- `npx prisma studio` - Open Prisma Studio for database management
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
