@@ -243,7 +243,6 @@ export default function Home() {
 }
 
 function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSignups; onUpdate: () => void; locale: Locale }) {
-  const isClient = useIsClient();
   const [showSignupForm, setShowSignupForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);

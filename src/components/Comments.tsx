@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Locale, t, formatDate } from '@/lib/i18n';
 
 interface Comment {
@@ -25,11 +25,7 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
   const [error, setError] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  useEffect(() => {
-    fetchComments();
-  }, [sessionId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const response = await fetch(`/api/sessions/${sessionId}/comments`);
       if (response.ok) {
@@ -43,7 +39,11 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

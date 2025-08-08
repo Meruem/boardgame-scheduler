@@ -77,7 +77,7 @@ export default function GameAutocomplete({
             setUseFallback(true);
             results = searchFallbackGames(query);
           }
-        } catch (error) {
+        } catch {
           console.log('BGG API failed, using fallback data');
           setUseFallback(true);
           results = searchFallbackGames(query);
@@ -126,7 +126,7 @@ export default function GameAutocomplete({
       } else {
         try {
           gameDetails = await getBoardGameDetails(suggestion.id);
-        } catch (error) {
+        } catch {
           console.log('BGG API failed for details, using fallback');
           gameDetails = getFallbackGameDetails(suggestion.id);
         }
