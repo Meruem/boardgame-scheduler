@@ -376,9 +376,19 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           </span>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{session.boardGameName}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">{session.boardGameName}</h3>
         
-        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+        {/* Prominent Time Display */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-3">
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-lg font-bold text-blue-800">{formatSessionTimeRange(session)}</span>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
           <div className="flex items-center gap-1 min-w-0">
             <span className="font-medium whitespace-nowrap">{t(locale, 'complexity')}:</span>
             <div className="flex items-center gap-1 flex-shrink-0">
@@ -404,10 +414,6 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
                 : `${session.minTimeMinutes}-${session.maxTimeMinutes} ${t(locale, 'minutes')}`}
             </span>
           </div>
-        </div>
-
-        <div className="text-sm text-gray-600 mb-3">
-          <span className="font-medium">{t(locale, 'scheduledFor')}:</span> {formatSessionTimeRange(session)}
         </div>
 
         {session.description && (
