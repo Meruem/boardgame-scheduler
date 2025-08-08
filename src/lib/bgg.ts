@@ -65,6 +65,58 @@ export const fallbackGames = [
   { id: '10', name: 'Power Grid', complexity: 3.3, playingTime: 120, minPlayers: 2, maxPlayers: 6 },
 ];
 
+function calculateRelevanceScore(gameName: string, query: string): number {
+  const lowerGameName = gameName.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const queryWords = lowerQuery.split(/\s+/).filter(word => word.length > 0);
+  
+  let score = 0;
+  
+  // Exact match gets highest score
+  if (lowerGameName === lowerQuery) {
+    score += 1000;
+  }
+  
+  // Starts with query gets high score
+  if (lowerGameName.startsWith(lowerQuery)) {
+    score += 500;
+  }
+  
+  // Contains all query words in order
+  if (lowerGameName.includes(lowerQuery)) {
+    score += 300;
+  }
+  
+  // Check for word matches
+  let matchedWords = 0;
+  let consecutiveMatches = 0;
+  let lastMatchIndex = -1;
+  
+  for (const word of queryWords) {
+    const wordIndex = lowerGameName.indexOf(word);
+    if (wordIndex !== -1) {
+      matchedWords++;
+      
+      // Bonus for consecutive word matches
+      if (lastMatchIndex !== -1 && wordIndex > lastMatchIndex) {
+        consecutiveMatches++;
+      }
+      lastMatchIndex = wordIndex;
+    }
+  }
+  
+  // Score based on word matches
+  score += matchedWords * 100;
+  score += consecutiveMatches * 50;
+  
+  // Bonus for shorter names (more specific matches)
+  if (gameName.length < 30) {
+    score += 20;
+  }
+  
+  return score;
+}
+
 export function searchFallbackGames(query: string): BGGSearchResult[] {
   if (!query.trim()) return [];
   
@@ -74,7 +126,9 @@ export function searchFallbackGames(query: string): BGGSearchResult[] {
     .map(game => ({
       id: game.id,
       name: game.name,
+      relevanceScore: calculateRelevanceScore(game.name, query),
     }))
+    .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
     .slice(0, 10);
 }
 

@@ -7,6 +7,7 @@ interface BGGSearchResult {
   id: string;
   name: string;
   year?: string;
+  relevanceScore?: number;
 }
 
 interface BGGGame {
