@@ -68,41 +68,26 @@ export async function GET(request: Request) {
     }
     
     // Parse complexity (averageweight) - try multiple patterns
-    let complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
+    let complexityMatch = xmlText.match(/<averageweight[^>]*value="([^"]*)"[^>]*\/>/);
     if (!complexityMatch) {
-      complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<ratings[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
-    }
-    if (!complexityMatch) {
-      complexityMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<averageweight>([^<]*)<\/averageweight>/);
-    }
-    if (!complexityMatch) {
-      // Try to find averageweight in the entire XML
-      complexityMatch = xmlText.match(/<averageweight[^>]*>([^<]*)<\/averageweight>/);
+      complexityMatch = xmlText.match(/<averageweight>([^<]*)<\/averageweight>/);
     }
     
     // Parse playing time - try multiple patterns
-    let playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
+    let playingTimeMatch = xmlText.match(/<playingtime[^>]*value="([^"]*)"[^>]*\/>/);
     if (!playingTimeMatch) {
-      playingTimeMatch = xmlText.match(/<statistics[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
-    }
-    if (!playingTimeMatch) {
-      // Try to find playingtime in the main item section
-      playingTimeMatch = xmlText.match(/<item[^>]*>[\s\S]*?<playingtime>([^<]*)<\/playingtime>/);
-    }
-    if (!playingTimeMatch) {
-      // Try to find playingtime anywhere in the XML
-      playingTimeMatch = xmlText.match(/<playingtime[^>]*>([^<]*)<\/playingtime>/);
+      playingTimeMatch = xmlText.match(/<playingtime>([^<]*)<\/playingtime>/);
     }
     
     // Parse player counts - try multiple patterns
-    let minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
+    let minPlayersMatch = xmlText.match(/<minplayers[^>]*value="([^"]*)"[^>]*\/>/);
     if (!minPlayersMatch) {
-      minPlayersMatch = xmlText.match(/<minplayers[^>]*>([^<]*)<\/minplayers>/);
+      minPlayersMatch = xmlText.match(/<minplayers>([^<]*)<\/minplayers>/);
     }
     
-    let maxPlayersMatch = xmlText.match(/<maxplayers>([^<]*)<\/maxplayers>/);
+    let maxPlayersMatch = xmlText.match(/<maxplayers[^>]*value="([^"]*)"[^>]*\/>/);
     if (!maxPlayersMatch) {
-      maxPlayersMatch = xmlText.match(/<maxplayers[^>]*>([^<]*)<\/maxplayers>/);
+      maxPlayersMatch = xmlText.match(/<maxplayers>([^<]*)<\/maxplayers>/);
     }
     const descriptionMatch = xmlText.match(/<description>([\s\S]*?)<\/description>/);
     const thumbnailMatch = xmlText.match(/<thumbnail>([^<]*)<\/thumbnail>/);
