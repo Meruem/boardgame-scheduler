@@ -128,6 +128,7 @@ export interface Translations {
   authorNameRequired: string;
   commentContentRequired: string;
   commentPlaceholder: string;
+  beFirstToShareThoughts: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -258,6 +259,7 @@ const translations: Record<Locale, Translations> = {
     authorNameRequired: 'Author name is required',
     commentContentRequired: 'Comment content is required',
     commentPlaceholder: 'Write a comment...',
+    beFirstToShareThoughts: 'Be the first to share your thoughts!',
   },
   cs: {
     // Common
@@ -386,6 +388,7 @@ const translations: Record<Locale, Translations> = {
     authorNameRequired: 'Jméno autora je povinné',
     commentContentRequired: 'Obsah komentáře je povinný',
     commentPlaceholder: 'Napište komentář...',
+    beFirstToShareThoughts: 'Buďte první, kdo sdílí své myšlenky!',
   },
 };
 
