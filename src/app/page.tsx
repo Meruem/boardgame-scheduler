@@ -487,7 +487,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
       {/* Signup Modal */}
       {showSignupForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">{t(locale, 'joinSession')}: {session.boardGameName}</h3>
@@ -523,7 +523,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-red-600">{t(locale, 'deleteSession')}</h3>
