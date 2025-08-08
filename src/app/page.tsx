@@ -161,7 +161,7 @@ export default function Home() {
   const retiredLanes = groupSessionsByDate(retiredSessions, locale).filter(lane => lane.sessions.length > 0);
 
   if (!isClient || loading) {
-    return (
+  return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-xl text-gray-700">{t(locale, 'loading')}</div>
       </div>
@@ -512,7 +512,10 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
           </span>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">{session.boardGameName}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{session.boardGameName}</h3>
+        <div className="text-sm text-gray-600 mb-3">
+          <span className="font-medium">{t(locale, 'organizer')}:</span> {session.organizer}
+        </div>
         
         {/* Prominent Time Display */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 mb-3">
@@ -655,7 +658,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
                 >
                   {t(locale, 'cancel')}
                 </button>
-              </div>
+        </div>
               </form>
             </div>
           </div>
@@ -810,6 +813,7 @@ function DateLane({ lane, onUpdate, locale }: { lane: DateLane; onUpdate: () => 
 }
 
 function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void; onSuccess: () => void; locale: Locale }) {
+  const { user } = useAuth();
   const getLocalDateString = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -835,6 +839,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
     minTimeMinutes: 60,
     maxTimeMinutes: 60,
     description: '',
+    organizer: user?.name || '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -864,8 +869,9 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
       minTimeMinutes: 60,
       maxTimeMinutes: 60,
       description: '',
+      organizer: user?.name || '',
     });
-  }, []);
+  }, [user?.name]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -896,6 +902,7 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
           minTimeMinutes: formData.minTimeMinutes,
           maxTimeMinutes: formData.maxTimeMinutes,
           description: formData.description,
+          organizer: formData.organizer,
         }),
       });
 
@@ -1160,6 +1167,20 @@ function CreateSessionForm({ onClose, onSuccess, locale }: { onClose: () => void
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'organizer')}
+                </label>
+                <input
+                  type="text"
+                  value={formData.organizer}
+                  onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder={t(locale, 'yourName')}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t(locale, 'description')}
                 </label>
                 <textarea
@@ -1225,6 +1246,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
     minTimeMinutes: session.minTimeMinutes || 60,
     maxTimeMinutes: session.maxTimeMinutes || 60,
     description: session.description || '',
+    organizer: session.organizer || '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -1274,6 +1296,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
           minTimeMinutes: formData.minTimeMinutes,
           maxTimeMinutes: formData.maxTimeMinutes,
           description: formData.description,
+          organizer: formData.organizer,
         }),
       });
 
@@ -1529,6 +1552,20 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t(locale, 'organizer')}
+                </label>
+                <input
+                  type="text"
+                  value={formData.organizer}
+                  onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  placeholder={t(locale, 'yourName')}
+                  required
+                />
               </div>
 
               <div>

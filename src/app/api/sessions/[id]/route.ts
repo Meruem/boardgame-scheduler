@@ -24,7 +24,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const body = await request.json();
     console.log('Update session request body:', body);
-              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description } = body ?? {};
+              const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer } = body ?? {};
 
     // Validate input
     if (
@@ -34,7 +34,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       Number.isNaN(Date.parse(scheduledAt)) ||
       typeof maxPlayers !== "number" ||
       !Number.isInteger(maxPlayers) ||
-      maxPlayers <= 0
+      maxPlayers <= 0 ||
+      typeof organizer !== "string" ||
+      !organizer.trim()
     ) {
       return NextResponse.json(
         { error: "Invalid input" },
@@ -88,6 +90,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
             minTimeMinutes: finalMinTimeMinutes,
             maxTimeMinutes: adjustedMaxTime,
             description: description?.trim() || null,
+            organizer: organizer.trim(),
           });
 
           const updated = await prisma.gameSession.update({
@@ -100,6 +103,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
               minTimeMinutes: finalMinTimeMinutes,
               maxTimeMinutes: adjustedMaxTime,
               description: description?.trim() || null,
+              organizer: organizer.trim(),
             },
           });
 

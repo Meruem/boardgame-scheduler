@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     console.log('Received session data:', body);
-    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description } = body ?? {};
+    const { boardGameName, scheduledAt, maxPlayers, complexity, minTimeMinutes, maxTimeMinutes, description, organizer } = body ?? {};
 
           if (
             typeof boardGameName !== "string" ||
@@ -50,7 +50,9 @@ export async function POST(request: Request) {
             typeof maxTimeMinutes !== "number" ||
             !Number.isInteger(maxTimeMinutes) ||
             maxTimeMinutes <= 0 ||
-            maxTimeMinutes < minTimeMinutes
+            maxTimeMinutes < minTimeMinutes ||
+            typeof organizer !== "string" ||
+            !organizer.trim()
           ) {
       return NextResponse.json(
         { error: "Invalid input" },
@@ -67,6 +69,7 @@ export async function POST(request: Request) {
                 minTimeMinutes,
                 maxTimeMinutes,
                 description: description?.trim() || null,
+                organizer: organizer.trim(),
               },
             });
     return NextResponse.json(created, { status: 201 });

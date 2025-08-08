@@ -39,6 +39,7 @@ export interface Translations {
   minTime: string;
   maxTime: string;
   description: string;
+  organizer: string;
   scheduledFor: string;
   minutes: string;
   signedUp: string;
@@ -179,6 +180,7 @@ const translations: Record<Locale, Translations> = {
     minTime: 'Min Time',
     maxTime: 'Max Time',
     description: 'Description',
+    organizer: 'Organizer',
     scheduledFor: 'Time',
     minutes: 'min',
     signedUp: 'Signed up',
@@ -317,6 +319,7 @@ const translations: Record<Locale, Translations> = {
     minTime: 'Min Čas',
     maxTime: 'Max Čas',
     description: 'Popis',
+    organizer: 'Organizátor',
     scheduledFor: 'Čas',
     minutes: 'min',
     signedUp: 'Přihlášeni',
