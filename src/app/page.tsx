@@ -88,12 +88,14 @@ const groupSessionsByDate = (sessions: GameSessionWithSignups[], locale: Locale)
 };
 
 export default function Home() {
+  const { user, isAuthenticated, logout } = useAuth();
   const isClient = useIsClient();
   const [locale, setLocale] = useState<Locale>('en');
   const [activeSessions, setActiveSessions] = useState<GameSessionWithSignups[]>([]);
   const [retiredSessions, setRetiredSessions] = useState<GameSessionWithSignups[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'retired'>('active');
 
   useEffect(() => {
@@ -177,7 +179,31 @@ export default function Home() {
                 {t(locale, 'subtitle')}
               </p>
             </div>
-            <LanguageSelector currentLocale={locale} onLocaleChange={handleLocaleChange} />
+            <div className="flex items-center gap-4">
+              {/* User Display */}
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm font-medium">
+                    {user?.name}
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="text-gray-600 hover:text-red-600 text-sm font-medium transition-colors"
+                    title={t(locale, 'logout')}
+                  >
+                    {t(locale, 'logout')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  {t(locale, 'login')}
+                </button>
+              )}
+              <LanguageSelector currentLocale={locale} onLocaleChange={handleLocaleChange} />
+            </div>
           </div>
         </header>
 
@@ -250,6 +276,17 @@ export default function Home() {
             locale={locale}
           />
         )}
+
+        {/* Login Modal */}
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => {
+            setShowLoginModal(false);
+          }}
+          locale={locale}
+          title={t(locale, 'login')}
+        />
       </div>
     </div>
   );

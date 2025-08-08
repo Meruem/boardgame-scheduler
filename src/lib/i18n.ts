@@ -136,6 +136,8 @@ export interface Translations {
   nameRequired: string;
   nameTooShort: string;
   continue: string;
+  login: string;
+  logout: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -274,6 +276,8 @@ const translations: Record<Locale, Translations> = {
     nameRequired: 'Name is required',
     nameTooShort: 'Name must be at least 2 characters',
     continue: 'Continue',
+    login: 'Login',
+    logout: 'Logout',
   },
   cs: {
     // Common
@@ -410,6 +414,8 @@ const translations: Record<Locale, Translations> = {
     nameRequired: 'Jméno je povinné',
     nameTooShort: 'Jméno musí mít alespoň 2 znaky',
     continue: 'Pokračovat',
+    login: 'Přihlásit',
+    logout: 'Odhlásit',
   },
 };
 
