@@ -101,6 +101,9 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
     try {
       const response = await fetch(`/api/sessions/${sessionId}/comments/${commentId}`, {
         method: 'DELETE',
+        headers: {
+          'x-user-name': user?.name || ''
+        },
       });
 
       if (response.ok) {

@@ -6,9 +6,15 @@ interface RouteParams {
 }
 
 // DELETE /api/sessions/[id]/comments/[commentId] - Delete a comment
-export async function DELETE(_request: Request, { params }: RouteParams) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id: sessionId, commentId } = await params;
+
+    // Require user identity via header
+    const userName = request.headers.get('x-user-name')?.trim();
+    if (!userName) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Check if comment exists and belongs to the session
     const comment = await prisma.comment.findFirst({
@@ -20,6 +26,11 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
     if (!comment) {
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    // Enforce ownership: only the original author can delete
+    if (comment.authorName.trim() !== userName) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Delete the comment
