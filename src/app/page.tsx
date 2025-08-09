@@ -122,7 +122,37 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const isClient = useIsClient();
   const [locale, setLocale] = useState<Locale>('en');
+  // Helper functions for event persistence
+  const getStoredEvent = (): Event | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem('boardgame-selected-event');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const storeEvent = (event: Event | null) => {
+    if (typeof window === 'undefined') return;
+    if (event) {
+      localStorage.setItem('boardgame-selected-event', JSON.stringify(event));
+    } else {
+      localStorage.removeItem('boardgame-selected-event');
+    }
+  };
+
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+  // Load selected event from localStorage on client mount
+  useEffect(() => {
+    if (isClient) {
+      const storedEvent = getStoredEvent();
+      if (storedEvent) {
+        setSelectedEvent(storedEvent);
+      }
+    }
+  }, [isClient]);
   const [activeSessions, setActiveSessions] = useState<GameSessionWithSignups[]>([]);
   const [retiredSessions, setRetiredSessions] = useState<GameSessionWithSignups[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,6 +196,23 @@ export default function Home() {
 
   const fetchSessions = useCallback(async () => {
     try {
+      // If we have a selected event, validate it still exists
+      if (selectedEvent) {
+        const eventsResponse = await fetch('/api/events?includeFinished=true');
+        if (eventsResponse.ok) {
+          const allEvents = await eventsResponse.json();
+          const eventExists = allEvents.some((event: Event) => event.id === selectedEvent.id);
+          
+          if (!eventExists) {
+            console.log('Stored event no longer exists, clearing selection');
+            setSelectedEvent(null);
+            storeEvent(null);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
       const activeUrl = selectedEvent ? `/api/sessions?eventId=${selectedEvent.id}` : '/api/sessions';
       const retiredUrl = selectedEvent ? `/api/sessions/retired?eventId=${selectedEvent.id}` : '/api/sessions/retired';
       
@@ -207,6 +254,7 @@ export default function Home() {
   if (showEventSelector || !selectedEvent) {
     return <EventSelector onEventSelect={(event) => {
       setSelectedEvent(event);
+      storeEvent(event);
       setShowEventSelector(false);
     }} locale={locale} onLocaleChange={handleLocaleChange} />;
   }
