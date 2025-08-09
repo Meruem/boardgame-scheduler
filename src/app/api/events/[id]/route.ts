@@ -21,22 +21,37 @@ export async function PUT(
       );
     }
 
-    // If trying to finish an event, check if it has open sessions
+    // If trying to finish an event, check if it has open or ongoing sessions
     if (finished === true) {
       const eventWithSessions = await prisma.event.findUnique({
         where: { id },
         include: {
           sessions: {
-            where: {
-              scheduledAt: {
-                gte: new Date()
-              }
-            }
-          }
-        }
+            select: {
+              scheduledAt: true,
+              maxTimeMinutes: true,
+            },
+          },
+        },
       });
 
-      if (eventWithSessions?.sessions && eventWithSessions.sessions.length > 0) {
+      const now = new Date();
+      const hasOpenOrOngoing = eventWithSessions?.sessions?.some((session) => {
+        if (!session.scheduledAt) {
+          return false;
+        }
+        // If duration is known, session ends at scheduledAt + maxTimeMinutes
+        if (session.maxTimeMinutes && Number.isInteger(session.maxTimeMinutes) && session.maxTimeMinutes > 0) {
+          const endTime = new Date(
+            session.scheduledAt.getTime() + session.maxTimeMinutes * 60 * 1000
+          );
+          return endTime >= now; // still ongoing or in the future
+        }
+        // Without duration, consider session open only if scheduled in the future
+        return session.scheduledAt >= now;
+      }) ?? false;
+
+      if (hasOpenOrOngoing) {
         return NextResponse.json(
           { error: "CANNOT_FINISH_EVENT_WITH_OPEN_SESSIONS" },
           { status: 400 }
