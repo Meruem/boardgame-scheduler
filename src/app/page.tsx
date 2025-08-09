@@ -778,8 +778,8 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
       {/* Signup Modal */}
       {showSignupForm && (
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">{t(locale, 'joinSession')}: {session.boardGameName}</h3>
               <form onSubmit={handleSignup}>
@@ -791,7 +791,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
                     type="text"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     placeholder={t(locale, 'yourName')}
                     required
                   />
@@ -806,7 +806,7 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
                 <button
                   type="button"
                   onClick={() => setShowSignupForm(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium transition-colors"
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 min-h-[44px] rounded-lg font-medium transition-colors"
                 >
                   {t(locale, 'cancel')}
                 </button>
@@ -819,8 +819,8 @@ function SessionCard({ session, onUpdate, locale }: { session: GameSessionWithSi
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-100/80 via-indigo-100/80 to-purple-100/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-4 text-red-600">{t(locale, 'deleteSession')}</h3>
               <p className="text-gray-700 mb-6">
@@ -1106,8 +1106,8 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl mx-4 relative overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
         {/* Boardgame-themed background pattern for modal */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 left-4 w-16 h-16 border-2 border-blue-300 rounded-lg transform rotate-6"></div>
@@ -1125,7 +1125,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
         )}
         
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* Left Column */}
             <div className="space-y-4">
               <div>
@@ -1169,7 +1169,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required={!formData.isUnscheduled}
                   disabled={formData.isUnscheduled}
                 />
@@ -1284,7 +1284,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                     const value = parseInt(e.target.value);
                     setFormData({ ...formData, maxPlayers: isNaN(value) ? 4 : value });
                   }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 />
               </div>
@@ -1328,7 +1328,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                       const value = parseInt(e.target.value);
                       setFormData({ ...formData, minTimeMinutes: isNaN(value) ? null : value });
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     placeholder="Optional"
                   />
                 </div>
@@ -1346,7 +1346,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                       const value = parseInt(e.target.value);
                       setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? null : value });
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     placeholder="Optional"
                   />
                 </div>
@@ -1360,7 +1360,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                   type="text"
                   value={formData.organizer}
                   onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   placeholder={t(locale, 'yourName')}
                   required
                 />
@@ -1374,7 +1374,7 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
                   type="url"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   placeholder="https://boardgamegeek.com/boardgame/..."
                 />
               </div>
@@ -1394,18 +1394,18 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
             </div>
           </div>
 
-          <div className="flex gap-2 mt-6">
+          <div className="flex flex-col sm:flex-row gap-2 mt-6">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 rounded-lg font-medium transition-colors"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 min-h-[44px] rounded-lg font-medium transition-colors"
             >
               {submitting ? t(locale, 'creating') : t(locale, 'createSession')}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium transition-colors"
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 min-h-[44px] rounded-lg font-medium transition-colors"
             >
               {t(locale, 'cancel')}
             </button>
@@ -1542,8 +1542,8 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-green-900/70 via-emerald-900/70 to-teal-900/70 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl mx-4 relative overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-br from-green-900/70 via-emerald-900/70 to-teal-900/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
         {/* Boardgame-themed background pattern for modal */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-4 left-4 w-16 h-16 border-2 border-green-300 rounded-lg transform rotate-6"></div>
@@ -1553,7 +1553,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
         <div className="relative z-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">{t(locale, 'editSession')}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* Left Column */}
             <div className="space-y-4">
               <div>
@@ -1597,7 +1597,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${formData.isUnscheduled ? 'opacity-50 cursor-not-allowed' : ''}`}
                   required={!formData.isUnscheduled}
                   disabled={formData.isUnscheduled}
                 />
@@ -1715,7 +1715,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                     const value = parseInt(e.target.value);
                     setFormData({ ...formData, maxPlayers: isNaN(value) ? session.signups.length : value });
                   }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -1762,7 +1762,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                       const value = parseInt(e.target.value);
                       setFormData({ ...formData, minTimeMinutes: isNaN(value) ? null : value });
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     placeholder="Optional"
                   />
                 </div>
@@ -1780,7 +1780,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                       const value = parseInt(e.target.value);
                       setFormData({ ...formData, maxTimeMinutes: isNaN(value) ? null : value });
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     placeholder="Optional"
                   />
                 </div>
@@ -1794,7 +1794,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   type="text"
                   value={formData.organizer}
                   onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   placeholder={t(locale, 'yourName')}
                   required
                 />
@@ -1808,7 +1808,7 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
                   type="url"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   placeholder="https://boardgamegeek.com/boardgame/..."
                 />
               </div>
@@ -1834,18 +1834,18 @@ function EditSessionForm({ session, onClose, onSuccess, locale }: { session: Gam
             </div>
           </div>
 
-          <div className="flex gap-2 mt-6">
+          <div className="flex flex-col sm:flex-row gap-2 mt-6">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2 rounded-lg font-medium transition-colors"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 min-h-[44px] rounded-lg font-medium transition-colors"
             >
               {submitting ? t(locale, 'updating') : t(locale, 'updateSession')}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium transition-colors"
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 min-h-[44px] rounded-lg font-medium transition-colors"
             >
               {t(locale, 'cancel')}
             </button>
