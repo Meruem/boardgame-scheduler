@@ -1078,6 +1078,28 @@ function CreateSessionForm({ onClose, onSuccess, locale, eventId }: { onClose: (
       });
 
       if (response.ok) {
+        const createdSession = await response.json();
+        
+        // Automatically sign up the session author
+        try {
+          const signupResponse = await fetch(`/api/sessions/${createdSession.id}/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayName: formData.organizer.trim() }),
+          });
+          
+          if (!signupResponse.ok) {
+            const errorText = await signupResponse.text();
+            console.warn('Failed to auto-signup session author:', errorText);
+            // Don't fail the whole operation if auto-signup fails
+          } else {
+            console.log('Successfully auto-signed up session author');
+          }
+        } catch (signupError) {
+          console.warn('Error during auto-signup:', signupError);
+          // Don't fail the whole operation if auto-signup fails
+        }
+        
         onSuccess();
       } else {
         const error = await response.json();
