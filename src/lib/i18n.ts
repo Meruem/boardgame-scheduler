@@ -479,7 +479,7 @@ const translations: Record<Locale, Translations> = {
     continue: 'Pokračovat',
     login: 'Přihlásit',
     logout: 'Odhlásit',
-    unscheduled: 'Bez data',
+    unscheduled: 'Nenaplánováno',
     events: 'Události',
     event: 'Událost',
     eventName: 'Název události',

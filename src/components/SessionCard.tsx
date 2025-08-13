@@ -91,11 +91,11 @@ export default function SessionCard({ session, onUpdate, locale }: SessionCardPr
       console.error('Failed to remove signup:', error);
       alert(t(locale, 'failedToRemovePlayer'));
     }
-  };
-
+    };
+  
   const formatSessionTimeRange = (session: GameSessionWithSignups) => {
     if (!session.scheduledAt) {
-      return locale === 'cs' ? 'Bez data' : 'Unscheduled';
+      return locale === 'cs' ? 'Nenaplánováno' : 'Unscheduled';
     }
     
     try {
