@@ -189,7 +189,7 @@ export default function EditSessionForm({ session, onClose, onSuccess, locale }:
                   </span>
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  {locale === 'cs' ? 'Sezení bez konkrétního data a času' : 'Session without specific date and time'}
+                  {t(locale, 'unscheduledDescription')}
                 </p>
               </div>
 
