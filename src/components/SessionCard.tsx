@@ -95,7 +95,7 @@ export default function SessionCard({ session, onUpdate, locale }: SessionCardPr
   
   const formatSessionTimeRange = (session: GameSessionWithSignups) => {
     if (!session.scheduledAt) {
-      return locale === 'cs' ? 'Nenaplánováno' : 'Unscheduled';
+      return t(locale, 'unscheduled');
     }
     
     try {
