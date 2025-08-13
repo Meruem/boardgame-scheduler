@@ -48,7 +48,7 @@ const groupSessionsByDate = (sessions: GameSessionWithSignups[], locale: Locale)
   // Create special lane for sessions without date (first)
   const unscheduledLane: DateLane = {
     date: 'unscheduled',
-    dateLabel: locale === 'cs' ? 'Bez data' : 'Unscheduled',
+    dateLabel: t(locale, 'unscheduled'),
     sessions: []
   };
   

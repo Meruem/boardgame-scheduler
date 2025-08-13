@@ -77,6 +77,7 @@ export interface Translations {
   complex: string;
   gameDescriptionAutoFilled: string;
   maxPlayersMinSignups: string;
+  unscheduledDescription: string;
   
   // Date labels
   today: string;
@@ -247,6 +248,7 @@ const translations: Record<Locale, Translations> = {
     complex: 'Complex',
     gameDescriptionAutoFilled: 'Game description will be auto-filled from BoardGameGeek when you select a game...',
     maxPlayersMinSignups: 'Cannot be less than current signups ({minSignups})',
+    unscheduledDescription: 'Session without specific date and time',
     
     // Date labels
     today: 'Today',
@@ -415,6 +417,7 @@ const translations: Record<Locale, Translations> = {
     complex: 'Složitá',
     gameDescriptionAutoFilled: 'Popis hry bude automaticky vyplněn z BoardGameGeek při výběru hry...',
     maxPlayersMinSignups: 'Nemůže být méně než současná přihlášení ({minSignups})',
+    unscheduledDescription: 'Sezení bez konkrétního data a času',
     
     // Date labels
     today: 'Dnes',
@@ -479,7 +482,7 @@ const translations: Record<Locale, Translations> = {
     continue: 'Pokračovat',
     login: 'Přihlásit',
     logout: 'Odhlásit',
-    unscheduled: 'Bez data',
+    unscheduled: 'Nenaplánováno',
     events: 'Události',
     event: 'Událost',
     eventName: 'Název události',
