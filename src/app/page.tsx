@@ -288,7 +288,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-blue-600">{selectedEvent?.name || t(locale, 'allSessions')}</span>
                 <button
                   onClick={() => setShowEventSelector(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1 px-3 rounded-lg transition-colors text-sm"
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1 px-3 rounded-lg transition-colors text-sm"
                 >
                   {t(locale, 'changeEvent')}
                 </button>
