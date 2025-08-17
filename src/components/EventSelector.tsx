@@ -435,6 +435,7 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
             </div>
           )}
 
+          {/* Active Events Section */}
           {events.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg mb-4">{t(currentLocale, 'noEvents')}</div>
@@ -446,84 +447,82 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
               </button>
             </div>
           ) : (
-            <>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {events.map((event) => (
-                  <div key={event.id} className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.name}</h3>
-                    <p className="text-gray-700 mb-4 font-medium">
-                      {event._count?.sessions || 0} {(event._count?.sessions || 0) === 1 ? t(currentLocale, 'session') : t(currentLocale, 'session')}
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => onEventSelect(event)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                      >
-                        {t(currentLocale, 'selectEvent')}
-                      </button>
-                      <button
-                        onClick={() => startEdit(event)}
-                        className="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-3 rounded-lg transition-colors border border-gray-300"
-                        title={t(currentLocale, 'editEvent')}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleFinishEvent(event)}
-                        className="bg-white hover:bg-gray-50 text-orange-600 font-semibold py-2 px-3 rounded-lg transition-colors border border-gray-300"
-                        title={t(currentLocale, 'finishEvent')}
-                      >
-                        ✅
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Finished Events Section */}
-              {finishedEvents.length > 0 && (
-                <div className="mt-8">
-                  <button
-                    onClick={() => setShowFinishedEvents(!showFinishedEvents)}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium mb-4"
-                  >
-                    <span>{t(currentLocale, 'finishedEvents')} ({finishedEvents.length})</span>
-                    <svg 
-                      className={`w-4 h-4 transition-transform ${showFinishedEvents ? 'rotate-180' : ''}`}
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => (
+                <div key={event.id} className="bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{event.name}</h3>
+                  <p className="text-gray-700 mb-4 font-medium">
+                    {event._count?.sessions || 0} {(event._count?.sessions || 0) === 1 ? t(currentLocale, 'session') : t(currentLocale, 'session')}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onEventSelect(event)}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  
-                  {showFinishedEvents && (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {finishedEvents.map((event) => (
-                        <div key={event.id} className="bg-gray-50 rounded-lg p-6 shadow-lg border border-gray-200">
-                          <h3 className="text-xl font-semibold text-gray-600 mb-2">{event.name}</h3>
-                          <p className="text-gray-500 mb-4 font-medium">
-                            {event._count?.sessions || 0} {(event._count?.sessions || 0) === 1 ? t(currentLocale, 'session') : t(currentLocale, 'session')}
-                          </p>
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm text-gray-500">
-                              {t(currentLocale, 'finished')}
-                            </div>
-                            <button
-                              onClick={() => onEventSelect(event)}
-                              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
-                            >
-                              {t(currentLocale, 'viewSessions')}
-                            </button>
-                          </div>
+                      {t(currentLocale, 'selectEvent')}
+                    </button>
+                    <button
+                      onClick={() => startEdit(event)}
+                      className="bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-3 rounded-lg transition-colors border border-gray-300"
+                      title={t(currentLocale, 'editEvent')}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleFinishEvent(event)}
+                      className="bg-white hover:bg-gray-50 text-orange-600 font-semibold py-2 px-3 rounded-lg transition-colors border border-gray-300"
+                      title={t(currentLocale, 'finishEvent')}
+                    >
+                      ✅
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Finished Events Section - Always show if there are finished events */}
+          {finishedEvents.length > 0 && (
+            <div className="mt-8">
+              <button
+                onClick={() => setShowFinishedEvents(!showFinishedEvents)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium mb-4"
+              >
+                <span>{t(currentLocale, 'finishedEvents')} ({finishedEvents.length})</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform ${showFinishedEvents ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showFinishedEvents && (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {finishedEvents.map((event) => (
+                    <div key={event.id} className="bg-gray-50 rounded-lg p-6 shadow-lg border border-gray-200">
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">{event.name}</h3>
+                      <p className="text-gray-500 mb-4 font-medium">
+                        {event._count?.sessions || 0} {(event._count?.sessions || 0) === 1 ? t(currentLocale, 'session') : t(currentLocale, 'session')}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-gray-500">
+                          {t(currentLocale, 'finished')}
                         </div>
-                      ))}
+                        <button
+                          onClick={() => onEventSelect(event)}
+                          className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
+                        >
+                          {t(currentLocale, 'viewSessions')}
+                        </button>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
