@@ -64,20 +64,34 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
 
   const fetchEvents = useCallback(async () => {
     try {
-      const [activeResponse, finishedResponse] = await Promise.all([
-        fetch('/api/events'),
-        fetch('/api/events?includeFinished=true')
-      ]);
+      console.log('Fetching events...');
+      const response = await fetch('/api/events?includeFinished=true');
       
-      if (activeResponse.ok && finishedResponse.ok) {
-        const activeData = await activeResponse.json();
-        const allData = await finishedResponse.json();
+      if (response.ok) {
+        const allData = await response.json();
         
-        console.log('Events data received:', { active: activeData, all: allData });
+        console.log('All events data received:', allData);
+        console.log('Raw data length:', allData.length);
         
-        setEvents(activeData);
-        setFinishedEvents(allData.filter((event: Event) => event.finished));
+        // Ensure finished property exists on all events
+        const eventsWithFinished = allData.map((event: any) => ({
+          ...event,
+          finished: event.finished ?? false // fallback to false if undefined
+        }));
+        
+        const activeEvents = eventsWithFinished.filter((event: Event) => !event.finished);
+        const finishedEvents = eventsWithFinished.filter((event: Event) => event.finished);
+        
+        console.log('Active events:', activeEvents.length);
+        console.log('Finished events found:', finishedEvents.length);
+        console.log('Finished events details:', finishedEvents);
+        
+        setEvents(activeEvents);
+        setFinishedEvents(finishedEvents);
       } else {
+        console.error('API response not ok:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
         setError(t(currentLocale, 'error'));
       }
     } catch (error) {

@@ -6,17 +6,41 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const includeFinished = searchParams.get('includeFinished') === 'true';
     
-    const events = await prisma.event.findMany({
-      where: includeFinished ? {} : { finished: false },
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: {
-          select: { sessions: true }
+    console.log('API /events called with includeFinished:', includeFinished);
+    
+    // Try to query with finished field first
+    let events;
+    try {
+      events = await prisma.event.findMany({
+        where: includeFinished ? {} : { finished: false },
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { sessions: true }
+          }
         }
-      }
-    });
+      });
+    } catch (schemaError) {
+      console.warn('Schema error (possibly missing finished field), falling back to basic query:', schemaError);
+      // Fallback: if finished field doesn't exist, just return all events
+      events = await prisma.event.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { sessions: true }
+          }
+        }
+      });
+      // Add finished: false to all events if field doesn't exist
+      events = events.map(event => ({ ...event, finished: false }));
+    }
 
+    console.log('Events found:', events.length);
+    if (includeFinished) {
+      console.log('Finished events:', events.filter(e => e.finished).length);
+    }
     console.log('Events with counts:', events);
+    
     return NextResponse.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
