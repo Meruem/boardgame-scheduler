@@ -74,7 +74,7 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
         console.log('Raw data length:', allData.length);
         
         // Ensure finished property exists on all events
-        const eventsWithFinished = allData.map((event: any) => ({
+        const eventsWithFinished = allData.map((event: Event) => ({
           ...event,
           finished: event.finished ?? false // fallback to false if undefined
         }));
