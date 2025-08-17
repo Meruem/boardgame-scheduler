@@ -21,9 +21,10 @@ interface DateLaneProps {
   lane: DateLane;
   onUpdate: () => void;
   locale: Locale;
+  readOnly?: boolean;
 }
 
-export default function DateLaneComponent({ lane, onUpdate, locale }: DateLaneProps) {
+export default function DateLaneComponent({ lane, onUpdate, locale, readOnly = false }: DateLaneProps) {
   const [isExpanded, setIsExpanded] = useState(lane.sessions.length > 0);
 
   const isEmpty = lane.sessions.length === 0;
@@ -98,7 +99,7 @@ export default function DateLaneComponent({ lane, onUpdate, locale }: DateLanePr
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {lane.sessions.map((session) => (
-                <SessionCard key={session.id} session={session} onUpdate={onUpdate} locale={locale} />
+                <SessionCard key={session.id} session={session} onUpdate={onUpdate} locale={locale} readOnly={readOnly} />
               ))}
             </div>
           )}

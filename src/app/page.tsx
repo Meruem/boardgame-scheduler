@@ -350,20 +350,27 @@ export default function Home() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
             {t(locale, 'gameSessions')}
+            {selectedEvent?.finished && (
+              <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                ({t(locale, 'finished')})
+              </span>
+            )}
           </h2>
-          <button
-            onClick={() => {
-              if (!isAuthenticated) {
-                setPendingAction('create');
-                setShowLoginModal(true);
-              } else {
-                setShowCreateForm(true);
-              }
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            {t(locale, 'createNewSession')}
-          </button>
+          {!selectedEvent?.finished && (
+            <button
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setPendingAction('create');
+                  setShowLoginModal(true);
+                } else {
+                  setShowCreateForm(true);
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {t(locale, 'createNewSession')}
+            </button>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -398,27 +405,29 @@ export default function Home() {
                 : t(locale, 'noSessionsScheduled')
               }
             </div>
-            <button
-              onClick={() => {
-                if (!isAuthenticated) {
-                  setPendingAction('create');
-                  setShowLoginModal(true);
-                } else {
-                  setShowCreateForm(true);
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              {t(locale, 'createFirstSession')}
-            </button>
+            {!selectedEvent?.finished && (
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setPendingAction('create');
+                    setShowLoginModal(true);
+                  } else {
+                    setShowCreateForm(true);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                {t(locale, 'createFirstSession')}
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
             {activeTab === 'active' && activeLanes.map((lane) => (
-              <DateLaneComponent key={lane.date} lane={lane} onUpdate={fetchSessions} locale={locale} />
+              <DateLaneComponent key={lane.date} lane={lane} onUpdate={fetchSessions} locale={locale} readOnly={selectedEvent?.finished} />
             ))}
             {activeTab === 'retired' && retiredLanes.map((lane) => (
-              <DateLaneComponent key={lane.date} lane={lane} onUpdate={fetchSessions} locale={locale} />
+              <DateLaneComponent key={lane.date} lane={lane} onUpdate={fetchSessions} locale={locale} readOnly={selectedEvent?.finished} />
             ))}
           </div>
         )}

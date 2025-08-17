@@ -169,6 +169,7 @@ export interface Translations {
   confirmFinishEvent: string;
   failedToFinishEvent: string;
   cannotFinishEventWithOpenSessions: string;
+  viewSessions: string;
 }
 
 const translations: Record<Locale, Translations> = {
@@ -340,6 +341,7 @@ const translations: Record<Locale, Translations> = {
     confirmFinishEvent: 'Are you sure you want to finish "{eventName}"?',
     failedToFinishEvent: 'Failed to finish event',
     cannotFinishEventWithOpenSessions: 'Cannot finish event with open sessions',
+    viewSessions: 'View Sessions',
   },
   cs: {
     // Common
@@ -509,6 +511,7 @@ const translations: Record<Locale, Translations> = {
     confirmFinishEvent: 'Opravdu chcete ukončit "{eventName}"?',
     failedToFinishEvent: 'Nepodařilo se ukončit událost',
     cannotFinishEventWithOpenSessions: 'Nelze ukončit událost s otevřenými sezeními',
+    viewSessions: 'Zobrazit sezení',
   },
 };
 

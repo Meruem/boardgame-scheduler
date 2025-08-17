@@ -16,9 +16,10 @@ interface Comment {
 interface CommentsProps {
   sessionId: string;
   locale: Locale;
+  readOnly?: boolean;
 }
 
-export default function Comments({ sessionId, locale }: CommentsProps) {
+export default function Comments({ sessionId, locale, readOnly = false }: CommentsProps) {
   const { user, isAuthenticated } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,28 +144,30 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
           </svg>
           {t(locale, 'comments')} ({comments.length})
         </button>
-        <button
-          onClick={() => {
-            if (!isAuthenticated) {
-              setShowLoginModal(true);
-            } else {
-              setShowAddForm(!showAddForm);
-              if (isCollapsed) setIsCollapsed(false);
-            }
-          }}
-          className="text-sm bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 p-2 rounded-lg transition-colors"
-          title={t(locale, 'addComment')}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+        {!readOnly && (
+          <button
+            onClick={() => {
+              if (!isAuthenticated) {
+                setShowLoginModal(true);
+              } else {
+                setShowAddForm(!showAddForm);
+                if (isCollapsed) setIsCollapsed(false);
+              }
+            }}
+            className="text-sm bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 p-2 rounded-lg transition-colors"
+            title={t(locale, 'addComment')}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {!isCollapsed && (
         <>
           {/* Add Comment Form */}
-          {showAddForm && (
+          {!readOnly && showAddForm && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
               <form onSubmit={handleSubmit}>
                 <div className="space-y-3">
@@ -241,15 +244,17 @@ export default function Comments({ sessionId, locale }: CommentsProps) {
                         {formatDate(new Date(comment.createdAt), locale)}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                      title={t(locale, 'delete')}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {!readOnly && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="text-gray-400 hover:text-red-600 transition-colors"
+                        title={t(locale, 'delete')}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {comment.content}

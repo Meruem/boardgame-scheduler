@@ -492,8 +492,16 @@ export default function EventSelector({ onEventSelect, locale, onLocaleChange }:
                           <p className="text-gray-500 mb-4 font-medium">
                             {event._count?.sessions || 0} {(event._count?.sessions || 0) === 1 ? t(currentLocale, 'session') : t(currentLocale, 'session')}
                           </p>
-                          <div className="text-sm text-gray-500">
-                            {t(currentLocale, 'finished')}
+                          <div className="flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                              {t(currentLocale, 'finished')}
+                            </div>
+                            <button
+                              onClick={() => onEventSelect(event)}
+                              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
+                            >
+                              {t(currentLocale, 'viewSessions')}
+                            </button>
                           </div>
                         </div>
                       ))}
